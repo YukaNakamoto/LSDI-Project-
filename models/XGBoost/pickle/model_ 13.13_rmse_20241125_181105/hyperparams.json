@@ -1,0 +1,14 @@
+{
+    "early_stopping_rounds": 189,
+    "max_depth": 7,
+    "learning_rate": 0.19176365676748502,
+    "n_estimators": 65,
+    "gamma": 0.4138531299979876,
+    "min_child_weight": 8,
+    "subsample": 0.6178486695307054,
+    "colsample_bytree": 0.9185165151164794,
+    "colsample_bynode": 0.8226312742375026,
+    "colsample_bylevel": 0.7959914892047338,
+    "max_delta_step": 4,
+    "reg_lambda": 0.9244877997211378
+}
