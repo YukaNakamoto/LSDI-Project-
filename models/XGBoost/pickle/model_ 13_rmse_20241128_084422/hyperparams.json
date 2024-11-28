@@ -1,0 +1,11 @@
+{
+    "base_score": 0.3888133835396405,
+    "colsample_bytree": 0.6349243426308729,
+    "early_stopping_rounds": 57,
+    "gamma": 0.2753854688925828,
+    "learning_rate": 0.05,
+    "max_depth": 157,
+    "min_child_weight": 7,
+    "n_estimators": 150,
+    "subsample": 0.5719023844219375
+}

@@ -1,0 +1,10 @@
+{
+    "colsample_bytree": 0.6349243426308729,
+    "early_stopping_rounds": 40,
+    "gamma": 0.8154683526419992,
+    "learning_rate": 0.06,
+    "max_depth": 200,
+    "min_child_weight": 7,
+    "n_estimators": 150,
+    "subsample": 0.5719023844219375
+}
