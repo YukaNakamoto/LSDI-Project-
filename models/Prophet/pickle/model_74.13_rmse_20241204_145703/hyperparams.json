@@ -1,0 +1,49 @@
+{
+    "growth": "linear",
+    "changepoint_prior_scale": 0.05,
+    "seasonality_mode": "additive",
+    "daily_seasonality": "auto",
+    "yearly_seasonality": "auto",
+    "weekly_seasonality": true,
+    "seasonality_prior_scale": 10.0,
+    "holidays_prior_scale": 10.0,
+    "n_changepoints": 7,
+    "seasonalities": {
+        "hourly": {
+            "period": 1,
+            "fourier_order": 480,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "daily": {
+            "period": 24,
+            "fourier_order": 50,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "monthly": {
+            "period": 732.0,
+            "fourier_order": 50,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "yearly": {
+            "period": 365.25,
+            "fourier_order": 1000,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "weekly": {
+            "period": 7,
+            "fourier_order": 3,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        }
+    },
+    "holidays": null
+}

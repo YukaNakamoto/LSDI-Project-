@@ -1,0 +1,42 @@
+{
+    "changepoint_prior_scale": 0.05,
+    "seasonality_mode": "additive",
+    "seasonalities": {
+        "hourly": {
+            "period": 24,
+            "fourier_order": 480,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "daily": {
+            "period": 1,
+            "fourier_order": 50,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "weekly": {
+            "period": 168,
+            "fourier_order": 900,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "monthly": {
+            "period": 30.5,
+            "fourier_order": 500,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        },
+        "yearly": {
+            "period": 365.25,
+            "fourier_order": 1000,
+            "prior_scale": 10.0,
+            "mode": "additive",
+            "condition_name": null
+        }
+    },
+    "holidays": null
+}
