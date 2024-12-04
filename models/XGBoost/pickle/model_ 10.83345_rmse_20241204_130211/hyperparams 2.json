@@ -1,0 +1,14 @@
+{
+    "base_score": 0.380924762889507,
+    "early_stopping_rounds": 40,
+    "max_depth": 200,
+    "learning_rate": 0.06,
+    "n_estimators": 150,
+    "gamma": 0.0,
+    "min_child_weight": 7,
+    "subsample": 0.5719023844219375,
+    "colsample_bytree": 0.8815691043681952,
+    "colsample_bylevel": 1.0,
+    "colsample_bynode": 0.99,
+    "reg_lambda": 1.0
+}
