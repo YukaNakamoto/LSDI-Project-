@@ -51,12 +51,12 @@ def create_features(df):
     return df
 
 
-def create_standardized_features(df, scalar):
+def create_normalized_features(df, scalar):
     df = df.copy()
-    df['hour'] = scalar.fit_transform(df.index.hour.to_numpy()[:, None])
-    df['dayofweek'] = scalar.fit_transform(df.index.dayofweek.to_numpy()[:, None])
-    df['dayofyear'] = scalar.fit_transform(df.index.dayofyear.to_numpy()[:, None])
-    df['weekofyear'] = scalar.fit_transform(df.index.isocalendar().week.to_numpy()[:, None])
+    df['hour'] = scalar.transform(df.index.hour.to_numpy()[:, None])
+    df['dayofweek'] = scalar.transform(df.index.dayofweek.to_numpy()[:, None])
+    df['dayofyear'] = scalar.transform(df.index.dayofyear.to_numpy()[:, None])
+    df['weekofyear'] = scalar.transform(df.index.isocalendar().week.to_numpy()[:, None])
 
     for window in [3, 6, 12]: # hours
         df[f'ma_{int(window)}_hours'] = df['Price'].rolling(window=window).mean()

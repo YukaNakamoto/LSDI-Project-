@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 
 def get_datasets() -> pd.DataFrame:
@@ -51,30 +51,33 @@ def get_datasets() -> pd.DataFrame:
     
     return merged_df, e_price_df.copy()
 
-def standardize_data(merged_df, e_price_df):
-    scaler = StandardScaler() #z-transformation
+def normalize_data(merged_df, e_price_df, interval_df):
+    merged_scaler = MinMaxScaler(feature_range=(0, 1))
+    price_scaler = MinMaxScaler(feature_range=(0, 1))
+    merged_interval_scaler = MinMaxScaler(feature_range=(0, 1))
+    
     z_merged_df = pd.DataFrame(
-        scaler.fit_transform(merged_df.copy()),
+        merged_scaler.fit_transform(merged_df.copy()),
         columns=merged_df.columns,
         index=merged_df.index,
     )
 
-    actual_price_scaler = StandardScaler() #z-transformation
-    z_actual_price_df = pd.DataFrame(
-        actual_price_scaler.fit_transform(e_price_df.copy()),
+    z_price_df = pd.DataFrame(
+        price_scaler.fit_transform(e_price_df.copy()),
         columns=e_price_df.columns,
         index=e_price_df.index,
     )
 
-    return z_merged_df, z_actual_price_df, actual_price_scaler
+    z_merged_interval_df = pd.DataFrame(
+        merged_interval_scaler.fit_transform(interval_df.copy()),
+        columns=interval_df.columns,
+        index=interval_df.index,
+    )
+
+    return z_merged_df, z_price_df, z_merged_interval_df, price_scaler
 
 def unstandardized_actual_price(z_y_test, z_y_pred_e, actual_price_scaler):
         y_test = actual_price_scaler.inverse_transform([z_y_test]).flatten()
         y_predicted = actual_price_scaler.inverse_transform([z_y_pred_e]).flatten()
 
         return y_test, y_predicted
-
-
-
-
-    

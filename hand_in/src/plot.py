@@ -5,59 +5,65 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def plot_merged_datasets( train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST):
+COLS = [
+    "Biomass",
+    "Hard Coal",
+    "Hydro",
+    "Lignite",
+    "Natural Gas",
+    "Nuclear",
+    "Other",
+    "Pumped storage generation",
+    "Solar",
+    "Wind offshore",
+    "Wind onshore"
+]
+
+def plot_price_split(train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST, title):
     sns.set_theme()
+    fig, ax = plt.subplots(figsize=(20, 11))
+    train["Price"].plot(ax=ax, label='Training Set', title=f'Hourly Next-Day Energy Price Train/Evaluation/Test Split - {title}')
+    test["Price"].plot(ax=ax, label='Test Set', color="red")
+    eval["Price"].plot(ax=ax, label='Evaluation Set', color="orange")
 
-    fig, axs = plt.subplots(nrows=5, figsize=(20, 55))
+    ax.axvline(SPLIT_DATE_EVAL, color='orange', ls='--')
+    ax.axvline(SPLIT_DATE_TEST, color='red', ls='--')
+    ax.legend(['Training Set', 'Test Set', 'Evaluation Set'])
+    plt.show()
 
-    train["Price"].plot(ax=axs[0], label='Training Set', title='Hourly Next-Day Energy Price Train/Evaluation/Test Split')
-    test["Price"].plot(ax=axs[0], label='Test Set', color="red")
-    eval["Price"].plot(ax=axs[0], label='Evaluation Set', color="orange")
-
-    axs[0].set_yticks(np.arange(-500, 900, 50))
-    axs[0].axvline(SPLIT_DATE_EVAL, color='orange', ls='--')
-    axs[0].axvline(SPLIT_DATE_TEST, color='red', ls='--')
-    axs[0].legend(['Training Set', 'Test Set', 'Evaluation Set'])
-
-
-    cols = [
-        "Biomass",
-        "Hard Coal",
-        "Hydro",
-        "Lignite",
-        "Natural Gas",
-        "Nuclear",
-        "Other",
-        "Pumped storage generation",
-        "Solar",
-        "Wind offshore",
-        "Wind onshore"
-        ]
-
+def plot_energy_mix_at_noon(train, eval, test):
     plt.style.use('default')
 
+    fig, axs = plt.subplots(nrows=3, figsize=(20, 33))
+
     filtered_train = train[train.index.hour == 12]
-    filtered_train[cols].plot(ax=axs[1], kind="bar", stacked=True, title='Energy Mix at 12:00 - Train Split', width=1.0)
-    axs[1].set_xticks(np.arange(0, len(filtered_train), 30))
-    axs[1].set_xticklabels(filtered_train.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
+    filtered_train[COLS].plot(ax=axs[0], kind="bar", stacked=True, title='Energy Mix at 12:00 - Train Split', width=1.0)
+    axs[0].set_xticks(np.arange(0, len(filtered_train), 30))
+    axs[0].set_xticklabels(filtered_train.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
 
     filtered_eval = eval[eval.index.hour == 12]
-    filtered_eval[cols].plot(ax=axs[2], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Eval Split', width=1.0)
-    axs[2].set_xticks(np.arange(0, len(filtered_eval), 30))
-    axs[2].set_xticklabels(filtered_eval.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
-
-
-    filtered_test = test.head(25)
-    filtered_test[cols].plot(ax=axs[3], kind="bar", stacked=True, title='Energy Mix on the 29. October 2024 - Test Split', width=1.0)
-    axs[3].set_xticks(np.arange(0, len(filtered_test), 1))
-    axs[3].set_xticklabels(filtered_test.index.strftime('%H:%M'), rotation=45, ha='right')
+    filtered_eval[COLS].plot(ax=axs[1], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Eval Split', width=1.0)
+    axs[1].set_xticks(np.arange(0, len(filtered_eval), 30))
+    axs[1].set_xticklabels(filtered_eval.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
 
     filtered_test = test[test.index.hour == 12]
-    filtered_test[cols].plot(ax=axs[4], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Test Split', width=1.0)
-    axs[4].set_xticks(np.arange(0, len(filtered_test), 30))
-    axs[4].set_xticklabels(filtered_test.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
+    filtered_test[COLS].plot(ax=axs[2], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Test Split', width=1.0)
+    axs[2].set_xticks(np.arange(0, len(filtered_test), 30))
+    axs[2].set_xticklabels(filtered_test.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
 
     plt.subplots_adjust(hspace=0.3)
+    plt.show()
+
+def plot_energy_mix_on_date(test, date):
+    plt.style.use('default')
+
+    fig, ax = plt.subplots(figsize=(20, 11))
+
+    filtered_test = test.loc[date]
+    filtered_test[COLS].plot(ax=ax, kind="bar", stacked=True, title=f'Energy Mix on {date.strftime("%d. %B %Y")} - Test Split', width=1.0)
+    ax.set_xticks(np.arange(0, len(filtered_test), 1))
+    ax.set_xticklabels(filtered_test.index.strftime('%H:%M'), rotation=45, ha='right')
+
     plt.show()
 
 

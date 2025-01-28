@@ -67,8 +67,4 @@ def linear_regression(X_train, y_train, X_test, y_test, scalar):
     # Plot using saved index
     plot_linear_regression(test_index, y_test_unscaled, predictions_unscaled)
 
-
-
-
-
     

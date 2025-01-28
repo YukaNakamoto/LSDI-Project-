@@ -21,14 +21,14 @@ def get_config_widgets():
     # Create interactive widgets for adjusting set sizes
     eval_size = widgets.FloatSlider(min=0, max=0.2, step=0.01, value=0.05, description='Evaluation Set Size')
 
-    standardize = widgets.Checkbox(
-        value=False, description="Standardize"
+    normalize = widgets.Checkbox(
+        value=False, description="Normalize"
     )
 
     # Display the widgets
-    display(price_interval_ex_outliers_slider, prediction_date_picker, eval_size, standardize)
+    display(price_interval_ex_outliers_slider, prediction_date_picker, eval_size, normalize)
     
-    return price_interval_ex_outliers_slider, prediction_date_picker, eval_size, standardize
+    return price_interval_ex_outliers_slider, prediction_date_picker, eval_size, normalize
 
 
 def select_features():
