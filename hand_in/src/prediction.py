@@ -1,11 +1,18 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import xgboost as xgb
+
+
 def predict_return_mse(best_params, X_train, y_train, X_val, y_val, X_test):
     reg = xgb.XGBRegressor(**best_params)
     reg.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=25)
     y_predicted = reg.predict(X_test)
-    
-    fi_img = feature_importance(reg, "MSE")
 
-    return y_predicted, reg, fi_img
+    return y_predicted, reg
 
 def predict_return_mae(best_params, X_train, y_train, X_val, y_val, X_test):
     best_params.update({"objective": "reg:squarederror", "eval_metric": "mae"})
@@ -14,9 +21,7 @@ def predict_return_mae(best_params, X_train, y_train, X_val, y_val, X_test):
     reg.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=25)
     y_predicted = reg.predict(X_test)
 
-    fi_img = feature_importance(reg, "MAE")
-
-    return y_predicted, reg, fi_img
+    return y_predicted, reg
 
 
 def linear_regression(X_train, y_train, X_test, y_test):

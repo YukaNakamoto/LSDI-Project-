@@ -1,29 +1,30 @@
 import ipywidgets as widgets
 from IPython.display import display
-from ipywidgets import interact
-
-from src.dataset import adjust_set_sizes
 
 def get_config_widgets():
-    # standardize_check = widgets.Checkbox(value=False, description='Standardize Data')
+    # IntRangeSlider for Energy Price Interval
     price_interval_ex_outliers_slider = widgets.IntRangeSlider(
         value=[-74.44, 222.01],  # Default range [min, max]
-        min=-400,           # Minimum value
-        max=900,         # Maximum value
-        step=1,          # Step size
+        min=-400,                # Minimum value
+        max=900,                 # Maximum value
+        step=1,                  # Step size
         description='Energy Price Interval',
         continuous_update=False  # Update only when sliding stops
     )
 
-    # Create interactive widget
-    interact(adjust_set_sizes, 
-            train=widgets.FloatSlider(min=0, max=0.9, step=0.01, value=0.8, description='Train Set Size'), 
-            val=widgets.FloatSlider(min=0, max=0.2, step=0.01, value=0.05, description='Evaluation Set Size'),
-            test=widgets.FloatSlider(min=0, max=0.2, step=0.01, value=0.15, description='Test Set Size'));
+    # DatePicker for Prediction Date
+    prediction_date_picker = widgets.DatePicker(
+        description='Prediction Date',
+        disabled=False
+    )
 
-    display(price_interval_ex_outliers_slider)
+    # Create interactive widgets for adjusting set sizes
+    eval_size = widgets.FloatSlider(min=0, max=0.2, step=0.01, value=0.05, description='Evaluation Set Size')
+
+    # Display the widgets
+    display(price_interval_ex_outliers_slider, prediction_date_picker, eval_size)
     
-    return price_interval_ex_outliers_slider
+    return price_interval_ex_outliers_slider, prediction_date_picker, eval_size
 
 
 def select_features():
@@ -32,7 +33,6 @@ def select_features():
         "hour",
         "dayofyear",
         "dayofweek",
-        "is_public_holiday",
         "ma_3_hours",
         "ma_6_hours",
         "ma_1_days",
@@ -52,27 +52,37 @@ def select_features():
         "temperature_2m",
         "precipitation",
         "wind_speed_100m",
-        "irradiance"
+        "direct_radiation"
     ]
 
     # Dictionary to store the checkbox states
     feature_checkboxes = {feature: widgets.Checkbox(value=True, description=feature) for feature in FEATURES}
 
-    # Function to display checkboxes
-    def display_feature_checkboxes():
-        checkbox_layout = widgets.VBox(list(feature_checkboxes.values()))
-        display(checkbox_layout)
-
-    # Function to get selected features
-    def get_selected_features(button):
-        selected_features = [feature for feature, checkbox in feature_checkboxes.items() if checkbox.value]
-        return selected_features
-
     # Display checkboxes
-    display_feature_checkboxes()
+    checkbox_layout = widgets.VBox(list(feature_checkboxes.values()))
+    display(checkbox_layout)
+
+    # Create an output widget to display the selected features
+    output = widgets.Output()
+    display(output)
 
     # Button to confirm selection
     confirm_button = widgets.Button(description="Confirm Selection")
     display(confirm_button)
-    return confirm_button.on_click(get_selected_features)
 
+    # Variable to store the selected features
+    selected_features = []
+
+    # Function to get selected features and update output
+    def get_selected_features(_):
+        nonlocal selected_features
+        selected_features = [feature for feature, checkbox in feature_checkboxes.items() if checkbox.value]
+        with output:
+            output.clear_output()  # Clear previous output
+            print("Selected Features:", selected_features)
+
+    # Link the button click event to the function
+    confirm_button.on_click(get_selected_features)
+
+    # Return the selected features variable for further use
+    return lambda: selected_features, FEATURES

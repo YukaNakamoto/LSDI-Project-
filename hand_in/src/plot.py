@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+
 def plot_merged_datasets( train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST):
     sns.set_theme()
 
@@ -80,30 +81,25 @@ def feature_importance(reg, objective):
                 columns=['importance'], )
     fi.sort_values('importance').plot(ax=axs[1], kind='barh', title=f'Feature Importance ex ma_3_hours - {objective}')
     plt.tight_layout()
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    # buf = io.BytesIO()
+    # plt.savefig(buf, format='png')
     plt.show()
     plt.close()
-    buf.seek(0)
+    # buf.seek(0)
 
-    return Image.open(buf)
+    # return Image.open(buf)
 
-def plot_predicted(test_set, predictions):
-    fig, axs = plt.subplots(nrows=2, figsize=(15, 10))
+def plot_predicted(test_set, predictions, objective_name):
+    fig, ax = plt.subplots(figsize=(10, 10))
 
-    axs[0].plot(test_set.index, test_set["Price"],  alpha=0.6)
-    axs[0].plot(test_set.index, predictions,  alpha=0.6)
-    axs[0].set_xlim(test_set.index.min(), test_set.index.max())
-    axs[0].set_ylabel("Hourly Next-Day Energy Price")
-    plt.legend(['Actual Data', 'Model Predictions'])    
-    axs[0].set_title(f'Test Data vs. Predictions (Full) - {objective[-3:]}')
+    ax.plot(test_set.index, test_set["Price"],  alpha=0.6, label="Actual")
+    ax.plot(test_set.index, predictions,  alpha=0.6, label="Predicitons")
+    ax.set_xlim(test_set.index.min(), test_set.index.max())
+    ax.set_ylabel("Hourly Next-Day Energy Price")
+    plt.legend()    
+    ax.set_title(f'Test Data vs. Predictions (Full) - {objective_name}')
 
-    test_set = test["2024-10-28 22:00:00":].copy()
-    axs[1].plot(test_set.index, test_set["Price"],  alpha=0.6)
-    axs[1].plot(test_set.index, predictions,  alpha=0.4)
-    axs[1].set_xlim(test_set.index.min(), test_set.index.max())
-    axs[1].set_ylabel("Hourly Next-Day Energy Price")
-    plt.legend(['Actual Data', 'Model Predictions'])    
-    axs[1].set_title(f'Test Data vs. Predictions (29-10-2024) - {objective[-3:]}')
+
+    
 
 

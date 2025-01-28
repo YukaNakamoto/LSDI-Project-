@@ -2,13 +2,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 
-def adjust_set_sizes(train, val, test):
-    global train_val_test_sets_sizes  # Access the global variable
-    total = train + val + test
-    train_norm, val_norm, test_norm = np.array([train, val, test]) / total
-    train_val_test_sets_sizes = [train_norm, val_norm, test_norm]
-    return train_val_test_sets_sizes
-
 def get_e_price_dataset() -> pd.DataFrame:
     e_price_df = pd.read_csv('../data/day_ahead_energy_prices.csv', delimiter=",")
 
