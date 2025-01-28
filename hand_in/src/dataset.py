@@ -78,61 +78,13 @@ def standardize_data(merged_df, e_price_df):
 
     return z_merged_df, z_actual_price_df, actual_price_scaler
 
+def unstandardized_actual_price(z_y_test, z_y_pred_e, actual_price_scaler):
+        y_test = actual_price_scaler.inverse_transform([z_y_test]).flatten()
+        y_predicted = actual_price_scaler.inverse_transform([z_y_pred_e]).flatten()
 
-def plot_merged_datasets(merged_df):
-    sns.set_theme()
-
-    fig, axs = plt.subplots(nrows=5, figsize=(15, 55))
-
-    train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST = split(merged_df)
-
-    train["Price"].plot(ax=axs[0], label='Training Set', title='Hourly Next-Day Energy Price Train/Evaluation/Test Split')
-    test["Price"].plot(ax=axs[0], label='Test Set', color="red")
-    eval["Price"].plot(ax=axs[0], label='Evaluation Set', color="orange")
-
-    axs[0].set_yticks(np.arange(-500, 900, 50))
-    axs[0].axvline(SPLIT_DATE_EVAL, color='orange', ls='--')
-    axs[0].axvline(SPLIT_DATE_TEST, color='red', ls='--')
-    axs[0].legend(['Training Set', 'Test Set', 'Evaluation Set'])
+        return y_test, y_predicted
 
 
-    cols = [
-        "Biomass",
-        "Hard Coal",
-        "Hydro",
-        "Lignite",
-        "Natural Gas",
-        "Nuclear",
-        "Other",
-        "Pumped storage generation",
-        "Solar",
-        "Wind offshore",
-        "Wind onshore"
-        ]
-
-    plt.style.use('default')
-
-    filtered_train = train[train.index.hour == 12][::-1]
-    filtered_train[cols].plot(ax=axs[1], kind="bar", stacked=True, title='Energy Mix at 12:00 - Train Split', width=1.0)
-    axs[1].set_xticks(np.arange(0, len(filtered_train), 30))
-    axs[1].set_xticklabels(filtered_train.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
-
-    filtered_eval = eval[eval.index.hour == 12][::-1]
-    filtered_eval[cols].plot(ax=axs[2], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Eval Split', width=1.0)
-    axs[2].set_xticks(np.arange(0, len(filtered_eval), 30))
-    axs[2].set_xticklabels(filtered_eval.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
 
 
-    filtered_test = test[test.index.hour == 12][::-1]
-    filtered_test[cols].plot(ax=axs[3], kind="bar", stacked=True, title='Daily Energy Mix at 12:00  - Test Split', width=1.0)
-    axs[3].set_xticks(np.arange(0, len(filtered_test), 30))
-    axs[3].set_xticklabels(filtered_test.index[::30].strftime('%Y-%m-%d'), rotation=45, ha='right')
-
-    filtered_test = test.head(25)[::-1]
-    # print(filtered_test)
-    filtered_test[cols].plot(ax=axs[4], kind="bar", stacked=True, title='Energy Mix on the 29. October 2024 - Test Split', width=1.0)
-    axs[4].set_xticks(np.arange(0, len(filtered_test), 1))
-    axs[4].set_xticklabels(filtered_test.index.strftime('%H:%M'), rotation=45, ha='right')
-
-    plt.subplots_adjust(hspace=0.3)
-    plt.show()
+    
