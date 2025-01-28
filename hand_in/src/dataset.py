@@ -2,7 +2,10 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 
-def get_e_price_dataset() -> pd.DataFrame:
+def get_datasets() -> pd.DataFrame:
+    dfs_to_merge = []
+    
+
     e_price_df = pd.read_csv('../data/day_ahead_energy_prices.csv', delimiter=",")
 
     # new_e_prices = get_new_e_prices() // TODO:
@@ -12,12 +15,7 @@ def get_e_price_dataset() -> pd.DataFrame:
     e_price_df.index = pd.to_datetime(e_price_df.index)
     e_price_df.rename(columns={"hourly day-ahead energy price": "Price"}, inplace=True)
 
-    return e_price_df
-
-def get_merged_dataset() -> pd.DataFrame:
-    dfs_to_merge = []
-
-    dfs_to_merge.append(get_e_price_dataset())
+    dfs_to_merge.append(e_price_df)
     
     mix_df = pd.read_csv('../data/hourly_market_mix_cleaned.csv', delimiter=",")
 
@@ -51,8 +49,7 @@ def get_merged_dataset() -> pd.DataFrame:
 
     merged_df = pd.concat(dfs_to_merge, axis=1, join='inner')
     
-    return merged_df
-
+    return merged_df, e_price_df.copy()
 
 def standardize_data(merged_df, e_price_df):
     scaler = StandardScaler() #z-transformation
