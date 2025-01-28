@@ -106,6 +106,26 @@ def plot_predicted(test_set, predictions, objective_name):
     plt.legend()    
     ax.set_title(f'Test Data vs. Predictions (Full) - {objective_name}')
 
+def plot_actual_vs_predicted(results_df, specific_date):
+    # Filter the results for the specific date
+    filtered_results = results_df[results_df['ds'].dt.date == pd.to_datetime(specific_date).date()]
+
+    # Check if there are any rows in filtered_results
+    if filtered_results.empty:
+        print(f"No data available for the date {specific_date}")
+    else:
+        # Plot the actual and predicted data
+        plt.figure(figsize=(16, 6))
+        plt.plot(filtered_results['ds'], filtered_results['y'], label='Actual Prices', color='blue', linewidth=2)
+        plt.plot(filtered_results['ds'], filtered_results['yhat'], label='Forecasted Prices', color='red', linestyle='dashed', linewidth=2)
+        plt.title(f"Actual vs Forecasted Energy Prices for {specific_date}")
+        plt.xlabel("Time")
+        plt.ylabel("Price")
+        plt.xticks(rotation=45)
+        plt.legend(loc='upper left')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
 
 def plot_linear_regression(index, y_test, predictions):
     # Plot actual vs predicted
