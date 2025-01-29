@@ -5,8 +5,8 @@ from datetime import date
 def get_config_widgets():
     # IntRangeSlider for Energy Price Interval
     price_interval_ex_outliers_slider = widgets.IntRangeSlider(
-        value=[-74.44, 222.01],  # Default range [min, max]
-        min=-400,                # Minimum value
+        value=[-500, 900],  # Default range [min, max]
+        min=-500,                # Minimum value
         max=900,                 # Maximum value
         step=1,                  # Step size
         description='Energy Price Interval',
