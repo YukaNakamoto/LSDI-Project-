@@ -1,18 +1,28 @@
 import pandas as pd
 
 
-def split(DATASET, eval_size, prediction_date):
+#  hourly_index = None
+#     if prediction_date:
+#         prediction_date = prediction_date.strftime("%Y-%m-%d")
+        
+#         hourly_index = pd.date_range(
+#             start=f"{prediction_date} 00:00:00",
+#             end=f"{prediction_date} 23:59:59",
+#             freq="H"
+#         )
+
+
+def split(DATASET, eval_size, test_ratio=0.15):
     """
     Split time series data into train, eval, and test sets, ensuring:
     - Train set includes t0.
-    - Test set includes tn.
+    - Test set includes the final 15% of the dataset (excluding the last date).
     - Eval set is positioned between train and test sets.
     
     Parameters:
     - DATASET: Pandas DataFrame or Series, indexed by datetime.
-    - TEST_SIZE: Proportion of the dataset to use for the test set (default: 0.16).
-    - VAL_SIZE: Proportion of the dataset to use for the eval set (default: 0.02).
-    - predict_last_day: If True, use the last 24 hours as the test set.
+    - eval_size: Proportion of the dataset to use for the eval set (relative to training size).
+    - test_ratio: Proportion of the dataset to use for the test set (default: 0.15).
     
     Returns:
     - train: Training set
@@ -21,32 +31,28 @@ def split(DATASET, eval_size, prediction_date):
     - SPLIT_DATE_EVAL: Date where train and eval split occurs
     - SPLIT_DATE_TEST: Date where eval and test split occurs
     """
-    hourly_index = None
-    if prediction_date:
-        prediction_date = prediction_date.strftime("%Y-%m-%d")
-        
-        hourly_index = pd.date_range(
-            start=f"{prediction_date} 00:00:00",
-            end=f"{prediction_date} 23:59:59",
-            freq="H"
-        )
-
-    max_hourly_time = hourly_index[-1]
-    DATASET = DATASET[DATASET.index <= max_hourly_time]
-
-    n = len(DATASET)
+    # Ensure dataset is sorted by datetime index
+    DATASET = DATASET.sort_index()
     
-    test_size = 24
+    # Get unique dates in dataset
+    unique_dates = DATASET.index.date
+    last_date = unique_dates[-1]  # Exclude the last date for test set allocation
+    
+    # Exclude last date from test set allocation
+    dataset_excl_last_date = DATASET[DATASET.index.date < last_date]
+    
+    n = len(dataset_excl_last_date)
+    test_size = int(test_ratio * n)
     remainder_size = n - test_size
     eval_size = int(eval_size * remainder_size)
     train_size = remainder_size - eval_size
     
-    SPLIT_DATE_EVAL = DATASET.index[train_size]
-    SPLIT_DATE_TEST = DATASET.index[-24]
+    SPLIT_DATE_EVAL = dataset_excl_last_date.index[train_size]
+    SPLIT_DATE_TEST = dataset_excl_last_date.index[train_size + eval_size]
     
-    train = DATASET.iloc[:train_size]
-    eval = DATASET.iloc[train_size:-24]
-    test = DATASET.iloc[-24:]
+    train = dataset_excl_last_date.iloc[:train_size]
+    eval = dataset_excl_last_date.iloc[train_size:train_size + eval_size]
+    test = dataset_excl_last_date.iloc[train_size + eval_size:]
     
     return train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST
 
