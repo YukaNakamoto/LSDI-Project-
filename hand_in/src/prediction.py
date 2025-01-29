@@ -8,14 +8,14 @@ import xgboost as xgb
 from src.plot import plot_linear_regression
 
 
-def predict_return_mse(best_params, X_train, y_train, X_val, y_val, X_test):
+def predict_mse(best_params, X_train, y_train, X_val, y_val, X_test):
     reg = xgb.XGBRegressor(**best_params)
     reg.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=25)
     y_predicted = reg.predict(X_test)
 
     return y_predicted, reg
 
-def predict_return_mae(best_params, X_train, y_train, X_val, y_val, X_test):
+def predict_mae(best_params, X_train, y_train, X_val, y_val, X_test):
     best_params.update({"objective": "reg:squarederror", "eval_metric": "mae"})
 
     reg = xgb.XGBRegressor(**best_params)
@@ -64,7 +64,6 @@ def linear_regression(X_train, y_train, X_test, y_test, scalar):
         y_test_unscaled = scalar.inverse_transform(y_test_cleaned.values.reshape(-1, 1)).ravel()
         predictions_unscaled = scalar.inverse_transform(predictions_scaled.reshape(-1, 1)).ravel()
 
-    # Plot using saved index
-    plot_linear_regression(test_index, y_test_unscaled, predictions_unscaled)
+    return predictions_unscaled, y_test_unscaled
 
     

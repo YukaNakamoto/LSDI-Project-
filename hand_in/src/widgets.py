@@ -1,5 +1,6 @@
 import ipywidgets as widgets
 from IPython.display import display
+from datetime import date
 
 def get_config_widgets():
     # IntRangeSlider for Energy Price Interval
@@ -14,6 +15,7 @@ def get_config_widgets():
 
     # DatePicker for Prediction Date
     prediction_date_picker = widgets.DatePicker(
+        value=date(2024, 10, 1),
         description='Prediction Date',
         disabled=False
     )

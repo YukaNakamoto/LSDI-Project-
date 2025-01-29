@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 
+
 def get_datasets() -> pd.DataFrame:
     dfs_to_merge = []
     

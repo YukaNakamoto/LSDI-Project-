@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def split(DATASET, eval_size, prediction_date):
     """
     Split time series data into train, eval, and test sets, ensuring:
@@ -18,16 +21,19 @@ def split(DATASET, eval_size, prediction_date):
     - SPLIT_DATE_EVAL: Date where train and eval split occurs
     - SPLIT_DATE_TEST: Date where eval and test split occurs
     """
+
+    hourly_index = None
     if prediction_date:
+        prediction_date = prediction_date.strftime("%Y-%m-%d")
+        
         hourly_index = pd.date_range(
             start=f"{prediction_date} 00:00:00",
             end=f"{prediction_date} 23:59:59",
             freq="H"
         )
 
-        # Adjust dataset to remove any timestamps beyond hourly_index
-        max_hourly_time = hourly_index[-1]
-        DATASET = DATASET[DATASET.index <= max_hourly_time]
+    max_hourly_time = hourly_index[-1]
+    DATASET = DATASET[DATASET.index <= max_hourly_time]
 
     n = len(DATASET)
     test_size = 24

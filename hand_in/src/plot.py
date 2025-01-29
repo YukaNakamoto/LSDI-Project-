@@ -70,7 +70,7 @@ def plot_energy_mix_on_date(test, date):
 
 def feature_importance(reg, objective):
     sns.set_theme()
-    fig, axs = plt.subplots(nrows=2, figsize=(15, 10))
+    fig, axs = plt.subplots(nrows=2, figsize=(12, 8))
 
     idx = np.argsort(reg.feature_importances_)[::-1]
     fi_sorted = reg.feature_importances_[idx]
@@ -97,7 +97,7 @@ def feature_importance(reg, objective):
     # return Image.open(buf)
 
 def plot_predicted(test_set, predictions, objective_name):
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(12, 4))
 
     ax.plot(test_set.index, test_set["Price"],  alpha=0.6, label="Actual")
     ax.plot(test_set.index, predictions,  alpha=0.6, label="Predicitons")
@@ -129,7 +129,7 @@ def plot_actual_vs_predicted(results_df, specific_date):
 
 def plot_linear_regression(index, y_test, predictions):
     # Plot actual vs predicted
-    plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 4))
     plt.plot(index, y_test, color='blue', label='Actual Data')
     plt.plot(index, predictions, color='red', linewidth=2, label='Predictions')
     plt.xlabel('Index')
