@@ -21,6 +21,7 @@ def split(DATASET, eval_size, prediction_date):
     - SPLIT_DATE_EVAL: Date where train and eval split occurs
     - SPLIT_DATE_TEST: Date where eval and test split occurs
     """
+
     hourly_index = None
     if prediction_date:
         prediction_date = prediction_date.strftime("%Y-%m-%d")
@@ -35,19 +36,32 @@ def split(DATASET, eval_size, prediction_date):
     DATASET = DATASET[DATASET.index <= max_hourly_time]
 
     n = len(DATASET)
-    
     test_size = 24
+
+    # Ensure there's enough data for splitting
+    if n < test_size:
+        raise ValueError("Not enough data for splitting into train, eval, and test sets.")
+
     remainder_size = n - test_size
     eval_size = int(eval_size * remainder_size)
     train_size = remainder_size - eval_size
-    
+
     SPLIT_DATE_EVAL = DATASET.index[train_size]
-    SPLIT_DATE_TEST = DATASET.index[-24]
-    
+    SPLIT_DATE_TEST = DATASET.index[-test_size]
+
     train = DATASET.iloc[:train_size]
-    eval = DATASET.iloc[train_size:-24]
-    test = DATASET.iloc[-24:]
-    
+    eval = DATASET.iloc[train_size:-test_size]
+    test = DATASET.iloc[-test_size:]
+
+    # Use hourly_index for the test set
+    test = test.loc[test.index.intersection(hourly_index)]
+
+    # Adjust eval and train sets to account for changes to test set
+    if not test.empty:
+        latest_test_time = test.index[0]
+        eval = eval[eval.index < latest_test_time]
+        train = train[train.index < latest_test_time]
+
     return train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST
 
 
