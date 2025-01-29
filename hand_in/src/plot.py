@@ -97,22 +97,23 @@ def feature_importance(reg, objective):
 
 def plot_predicted(test_set, predictions, date):
     fig, ax = plt.subplots(figsize=(20, 10))
-
+    test_set = test_set.iloc[-24:]
     # Extract hours from the datetime index
     hours = test_set.index.hour  
 
     ax.step(hours, test_set, lw=3, where="mid", alpha=1, label="Actual")
     
     for (pred, name, rf) in predictions:
-        ax.step(hours, pred, where="mid", alpha=0.6, label=f"{name} - {rf}")
+        ax.step(hours, pred[-24:], where="mid", alpha=0.6, label=f"{name} - {rf}")
 
-    ax.set_xlim(0, 23)  # Set x-axis to range from 0 to 23 hours
+    # ax.set_xlim(0, 23)  # Set x-axis to range from 0 to 23 hours
+    ax.set_xlim(0, 23)  
     ax.set_xticks(range(0, 24))  # Set ticks every 3 hours for readability
-    ax.set_xlabel("Hour of the Day")
+    ax.set_xlabel("Hours")
     ax.set_ylabel("Hourly Next-Day Energy Price")
     
     plt.legend()
-    ax.set_title(f'Test Set vs. Predictions ({date})')
+    ax.set_title(f'Test Set vs. Predictions -  Last 24h')
     plt.grid(True, linestyle="--", alpha=0.5)  # Add grid for better readability
     plt.show()
 
