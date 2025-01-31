@@ -72,6 +72,8 @@ def select_features():
         "Nuclear",
         "Other",
         "Pumped storage generation",
+        "ma_3_hours_pumped_storage_generation",
+        "ma_6_hours_pumped_storage_generation",
         "Solar",
         "Wind offshore",
         "Wind onshore",
