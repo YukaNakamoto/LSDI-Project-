@@ -15,7 +15,7 @@ def get_config_widgets():
 
     # DatePicker for Prediction Date
     prediction_date_picker = widgets.DatePicker(
-        value=date(2024, 10, 29),
+        value=date.today(),
         description='Prediction Date',
         disabled=False
     )

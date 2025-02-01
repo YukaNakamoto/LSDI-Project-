@@ -36,23 +36,25 @@ def split(DATASET, eval_size, test_ratio=0.15):
     
     # Get unique dates in dataset
     unique_dates = DATASET.index.date
-    last_date = unique_dates[-1]  # Exclude the last date for test set allocation
+    last_month = 24 * 31
+    last_date = unique_dates[-last_month]  # Exclude the last month for benchmarking
+    print(last_date)
     
     # Exclude last date from test set allocation
-    dataset_excl_last_date = DATASET[DATASET.index.date < last_date]
+    dataset_excl_last_month = DATASET[DATASET.index.date < last_date]
     
-    n = len(dataset_excl_last_date)
+    n = len(dataset_excl_last_month)
     test_size = int(test_ratio * n)
     remainder_size = n - test_size
     eval_size = int(eval_size * remainder_size)
     train_size = remainder_size - eval_size
     
-    SPLIT_DATE_EVAL = dataset_excl_last_date.index[train_size]
-    SPLIT_DATE_TEST = dataset_excl_last_date.index[train_size + eval_size]
+    SPLIT_DATE_EVAL = dataset_excl_last_month.index[train_size]
+    SPLIT_DATE_TEST = dataset_excl_last_month.index[train_size + eval_size]
     
-    train = dataset_excl_last_date.iloc[:train_size]
-    eval = dataset_excl_last_date.iloc[train_size:train_size + eval_size]
-    test = dataset_excl_last_date.iloc[train_size + eval_size:]
+    train = dataset_excl_last_month.iloc[:train_size]
+    eval = dataset_excl_last_month.iloc[train_size:train_size + eval_size]
+    test = dataset_excl_last_month.iloc[train_size + eval_size:]
     
     return train, eval, test, SPLIT_DATE_EVAL, SPLIT_DATE_TEST
 

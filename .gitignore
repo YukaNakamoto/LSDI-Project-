@@ -1,2 +1,3 @@
 pj-env
 app.log
+.cache.sqlite
