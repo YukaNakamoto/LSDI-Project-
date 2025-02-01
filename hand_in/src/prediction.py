@@ -4,6 +4,31 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 import xgboost as xgb
+from prophet import Prophet
+
+def init_prophet_model(FEATURES):
+
+    # Initialize Prophet model
+    model = Prophet(
+        changepoint_prior_scale = 0.5,
+        seasonality_prior_scale = 1.0,
+        holidays_prior_scale = 1.0,
+        seasonality_mode= 'multiplicative',
+        
+        
+    )
+
+    #Add fourier order for weekly and monthly seasonality
+    model.add_seasonality(name='weekly', period=7, fourier_order=20)
+    model.add_seasonality(name='monthly', period=30.5, fourier_order=20)
+    model.add_seasonality(name='yearly', period=365, fourier_order=20)
+
+    # Add time-based regressors
+
+    for feature in FEATURES:
+        model.add_regressor(feature)
+
+    return model
 
 
 def predict_mse(best_params, X_train, y_train, X_val, y_val, X_test):

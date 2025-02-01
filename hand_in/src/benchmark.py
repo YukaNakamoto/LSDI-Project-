@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from datetime import datetime, timedelta
 
-from src.scraping import download_smard_energy_mix_prediction, fetch_past_and_predicted_weather, fetch_forecast
+from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
 
 def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
@@ -14,8 +14,6 @@ def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
     sampled = np.random.normal(last_24h_mean, last_24h_std, size=count) # assuming stationary distribution of the last 24h
     new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="H")
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
-    
-    print(f"{count} estimations added to {col_name} column.")
     
     return estimated_df
 

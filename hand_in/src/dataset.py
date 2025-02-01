@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from datetime import datetime, timedelta
 
-from src.scraping import download_smard_energy_mix_prediction, fetch_past_and_predicted_weather
+from src.scraping import download_smard_energy_mix_prediction
 
 def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
@@ -99,6 +99,8 @@ def get_datasets(prediction_date) -> pd.DataFrame: # 12:00 of every day -> add 1
             print("-" * 50)
         else:
             print(f"✅ No duplicate indices in DataFrame {i}.")
+
+    print(dfs_to_merge)
 
 
     merged_df = pd.concat(dfs_to_merge, axis=1, join='inner').dropna(axis=0)
