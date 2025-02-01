@@ -44,8 +44,8 @@ def split(DATASET, eval_size, test_ratio=0.15):
     dataset_excl_last_month = DATASET[DATASET.index.date < last_date]
     
     n = len(dataset_excl_last_month)
-    test_size = int(test_ratio * n)
-    remainder_size = n - test_size
+    # test_size = int(test_ratio * n)
+    remainder_size = n - 24
     eval_size = int(eval_size * remainder_size)
     train_size = remainder_size - eval_size
     
