@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from datetime import datetime, timedelta
 
-from src.scraping import download_smard_energy_mix_prediction, fetch_past_and_predicted_weather
+from src.scraping import download_smard_energy_mix_prediction, fetch_past_and_predicted_weather, fetch_forecast
 
 def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
@@ -51,7 +51,7 @@ def extend_by_predictions_and_samples(df, last_date, n = 24) -> pd.DataFrame:
     price_df = get_by_estimations(price_df, last_date, "Price", n)
     copy_mix_df = get_by_copy(copy_mix_df, n)
     pred_mix_df = download_smard_energy_mix_prediction(last_date + timedelta(hours=1), n)
-    weather_df = get_by_copy(weather_df, n) # TODO: replace with scraper
+    weather_df = fetch_forecast(last_date, n)
 
     extended_merged_df = pd.concat([price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join='inner')
     return pd.concat([df, extended_merged_df])
