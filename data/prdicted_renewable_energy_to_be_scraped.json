@@ -1,0 +1,32 @@
+{
+    "id": 2003791,
+    "data_id": 3791,
+    "name": "MM-Bausteine.Wind Offshore",
+    "order": 3,
+    "point_type": null,
+    "chart_type": "line",
+    "table_type": "discrete",
+    "unit": "VD-Einheit.MWh"
+},
+{
+    "id": 2000123,
+    "data_id": 123,
+    "name": "MM-Bausteine.Wind Onshore",
+    "order": 4,
+    "point_type": null,
+    "chart_type": "line",
+    "table_type": "discrete",
+    "unit": "VD-Einheit.MWh"
+},
+{
+    "id": 2000125,
+    "data_id": 125,
+    "name": "MM-Bausteine.Photovoltaik",
+    "order": 5,
+    "point_type": null,
+    "chart_type": "line",
+    "table_type": "discrete",
+    "unit": "VD-Einheit.MWh"
+}
+]
+}
