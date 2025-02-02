@@ -20,9 +20,9 @@ def preprocess_dates(start_date: datetime, n=None, end_date=None):
     hour_offset = weekday * 24
     timestamp_in_milliseconds = epoch_timestamp * 1000 - (hour_offset * 3600 * 1000)
     if end_date:
-        delta_pred_values = (end_date - local_date_object).days * 24 # TODO maybe +1
+        delta_pred_values = (end_date - local_date_object).days * 24 + 1  # Adjusted to include the end hour
     elif n:
-        delta_pred_values = n
+        delta_pred_values = n + 1 # Adjusted to include the end hour
     else:
         raise ValueError("Either n or end_date must be provided")
 
@@ -55,7 +55,7 @@ def postprocess_data(responses, hour_offset, delta_pred_values):
             continue
 
         series = data["series"]
-        start_index = hour_offset
+        start_index = hour_offset + 1
         end_index = hour_offset + delta_pred_values
         day_series = series[start_index:end_index]
         dts = [datetime.fromtimestamp(dt[0] / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S') for dt in day_series]
@@ -309,10 +309,10 @@ def fetch_forecast(start_date, hours=None, end_date=None):
 
     coordinates_avg = coordinates_data.groupby("date").mean()
     combined_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
-
     # Select only the required columns
     final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
-    final_df.reset_index(inplace=True)
+    final_df.index.name = "Datetime"
+    final_df.index = final_df.index.tz_localize(None)
 
     return final_df
 

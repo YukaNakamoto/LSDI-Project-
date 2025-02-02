@@ -17,26 +17,32 @@ def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
     
     return estimated_df
 
-def get_by_copy(df, n):
+def get_by_copy(df, last_date, n):
     """
     Copies the last n rows of a DataFrame and appends them to the end,
-    updating the datetime index accordingly.
+    ensuring the new index continues from last_date.
 
     Parameters:
         df (pd.DataFrame): DataFrame with a DateTimeIndex.
+        last_date (pd.Timestamp): The last known timestamp in the dataset.
+        n (int): Number of hours to extend.
 
     Returns:
-        pd.DataFrame: Updated DataFrame with n additional rows.
+        pd.DataFrame: Updated DataFrame with n additional rows, correctly indexed.
     """
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
 
     last_n_rows = df.iloc[-n:].copy()
-    
-    # Shift the index by n hours
-    last_n_rows.index += pd.DateOffset(hours=n)
 
-    return pd.concat([df, last_n_rows])
+    # Generate new timestamps starting from last_date + 1 hour
+    new_index = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=n, freq='H')
+
+    # Ensure new timestamps match expected future values
+    last_n_rows.index = new_index
+
+    return last_n_rows  # Return only the extended rows
+
 
 def extend_by_predictions_and_samples(df, last_date, n = 24) -> pd.DataFrame: 
     
@@ -47,8 +53,9 @@ def extend_by_predictions_and_samples(df, last_date, n = 24) -> pd.DataFrame:
 
 
     price_df = get_by_estimations(price_df, last_date, "Price", n)
-    copy_mix_df = get_by_copy(copy_mix_df, n)
+    copy_mix_df = get_by_copy(copy_mix_df,last_date, n)
     pred_mix_df = download_smard_energy_mix_prediction(last_date + timedelta(hours=1), n)
+
     weather_df = fetch_forecast(last_date, n)
 
     extended_merged_df = pd.concat([price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join='inner')
