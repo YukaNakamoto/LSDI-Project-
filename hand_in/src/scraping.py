@@ -60,7 +60,7 @@ def postprocess_data(responses, hour_offset, delta_pred_values):
         day_series = series[start_index:end_index]
         dts = [datetime.fromtimestamp(dt[0] / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S') for dt in day_series]
 
-        observed_output = [item[1] for item in day_series]
+        observed_output = [item[1] / 1000 for item in day_series]  # Convert MWh to GWh
 
         df = pd.DataFrame({
             "Datetime": dts,
@@ -88,14 +88,13 @@ def setup_client():
     return openmeteo_requests.Client(session=retry_session)
 
 def convert_dates(start_date, end_date=None, hours=None):
-    start_dt = start_date.date()
     if end_date:
-        end_dt = end_date.date()
+        end_dt = end_date
     elif hours:
-        end_dt = start_dt + timedelta(hours=hours)
+        end_dt = start_date + timedelta(hours=hours)
     else:
         raise ValueError("Either end_date or hours must be provided")
-    return start_dt.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
+    return start_date.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
 
 def fetch_data(client, coords, params_template, forecast_url):
     all_data = []
@@ -347,7 +346,7 @@ def fetch_historical():
     final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
     final_df.reset_index(inplace=True)
 
-    forecast_csv_file = "../data/germany_weather_average.csv.csv"
+    forecast_csv_file = "../data/germany_weather_average.csv"
     final_df.to_csv(forecast_csv_file, index=False)
     print(f"Forecast data saved to {forecast_csv_file}.")
 
@@ -507,6 +506,8 @@ def update_e_mix_data(csv_path="../data/hourly_market_mix_cleaned.csv"):
             continue
         
         for ts, value, category in response.json().get("data", {}).get("data", []):
+            print(value, category)
+            
             if category in mix_categories:
                 if value is None:
                     print(f"Warning: Null value for {ts} - {category}, replacing with 0.0")

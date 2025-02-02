@@ -59,6 +59,7 @@ def extend_by_predictions_and_samples(df, last_date, n = 24) -> pd.DataFrame:
     weather_df = fetch_forecast(last_date, n)
 
     extended_merged_df = pd.concat([price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join='inner')
+
     return pd.concat([df, extended_merged_df])
 
 
