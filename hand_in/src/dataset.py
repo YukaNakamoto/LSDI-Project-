@@ -72,36 +72,17 @@ def get_avg_weather_data() -> pd.DataFrame:
 
     return avg_weather_df
 
-def get_datasets(prediction_date) -> pd.DataFrame: # 12:00 of every day -> add 1.5 days of values to e.g. 17.02 12:00 -> 19.02 00:00
-    prediction_date_start = datetime.combine(prediction_date, datetime.min.time()).replace(hour=0)
+def get_datasets() -> pd.DataFrame: # 12:00 of every day -> add 1.5 days of values to e.g. 17.02 12:00 -> 19.02 00:00
     dfs_to_merge = []
 
     e_price_df = get_e_price_df()
-    print(e_price_df)
-    print("-----------------")
     dfs_to_merge.append(e_price_df)
 
     mix_df = get_mix_df()
-    print(mix_df)
-    print("-----------------")
     dfs_to_merge.append(mix_df)
 
     avg_weather_df = get_avg_weather_data()
-    print(avg_weather_df)
-    print("-----------------")
     dfs_to_merge.append(avg_weather_df)
-
-    for i, df in enumerate(dfs_to_merge):
-        duplicates = df.index[df.index.duplicated(keep=False)]  # Get all duplicate indices
-        if not duplicates.empty:
-            print(f"🔴 Duplicate indices in DataFrame {i}:")
-            print(duplicates.unique())  # Print unique duplicate indices
-            print("-" * 50)
-        else:
-            print(f"✅ No duplicate indices in DataFrame {i}.")
-
-    print(dfs_to_merge)
-
 
     merged_df = pd.concat(dfs_to_merge, axis=1, join='inner').dropna(axis=0)
     return merged_df, e_price_df.copy()
