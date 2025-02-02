@@ -96,6 +96,7 @@ def convert_dates(start_date, end_date=None, hours=None):
         raise ValueError("Either end_date or hours must be provided")
     return start_date.strftime("%Y-%m-%d"), end_dt.strftime("%Y-%m-%d")
 
+
 def fetch_data(client, coords, params_template, forecast_url):
     all_data = []
     for coord in coords:
@@ -257,7 +258,6 @@ wind_parks = [
         {"latitude": 52.900000, "longitude": 12.384167, "weight": 40.4},  # Windpark Kyritz-Plänitz-Zernitz
         {"latitude": 52.597222, "longitude": 12.266667, "weight": 40},  # Windpark Stüdenitz
     ]
-
 sun_parks = [
         {"latitude": 51.3167, "longitude": 12.3667, "weight": 605},   # Witznitz
         {"latitude": 51.3236, "longitude": 12.6511, "weight": 52},    # Waldpolenz Solar Park
@@ -316,23 +316,33 @@ def fetch_forecast(start_date, hours=None, end_date=None):
     return final_df
 
 def fetch_historical():
-    start_date = "2018-01-01"
-    end_date = datetime.utcnow().strftime("%Y-%m-%d")
     client = setup_client()
     forecast_url = "https://archive-api.open-meteo.com/v1/archive"
+    historical_csv_file = "../data/germany_weather_average.csv"
 
-    forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
+    # Read the last date from the existing CSV file
+    try:
+        df_existing = pd.read_csv(historical_csv_file)
+        last_date = pd.to_datetime(df_existing['date']).max()
+        start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
+    except FileNotFoundError:
+        start_date = "2018-01-01"  # Default start date if file does not exist
+
+    end_date = datetime.utcnow().strftime("%Y-%m-%d")
+
+    # Ensure end_date is greater than or equal to start_date
+    if datetime.strptime(end_date, "%Y-%m-%d") < datetime.strptime(start_date, "%Y-%m-%d"):
+        end_date = start_date
 
     params_template = {
-        "start_date": forecast_start_date,
-        "end_date": forecast_end_date,
+        "start_date": start_date,
+        "end_date": end_date,
         "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
     }
-    coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
 
+    coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
     params_template["hourly"] = ["wind_speed_100m"]
     wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
-
     params_template["hourly"] = ["direct_radiation"]
     sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
 
@@ -346,12 +356,31 @@ def fetch_historical():
     final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
     final_df.reset_index(inplace=True)
 
-    forecast_csv_file = "../data/germany_weather_average.csv"
-    final_df.to_csv(forecast_csv_file, index=False)
-    print(f"Forecast data saved to {forecast_csv_file}.")
+    # Filter out data that already exists in the CSV
+    if not df_existing.empty:
+        final_df = final_df[final_df['date'] > last_date]
 
-    return combined_df
+    # Drop rows with all NaN values
+    final_df.dropna(how='all', inplace=True)
 
+    # Check if the file exists and is not empty
+    file_exists = os.path.isfile(historical_csv_file)
+    if file_exists:
+        with open(historical_csv_file, 'r') as f:
+            file_empty = len(f.read().strip()) == 0
+    else:
+        file_empty = True
+
+    # Append new data to the existing CSV file
+    final_df.to_csv(historical_csv_file, index=False, mode='a', header=not file_exists or file_empty)
+    df = pd.read_csv(historical_csv_file)
+
+    # Drop all rows with any NaN values
+    df_cleaned = df.dropna()
+
+    # Save the cleaned data back to CSV
+    df_cleaned.to_csv(historical_csv_file, index=False)
+    print(f"Forecast data appended to {historical_csv_file}.")
 
 def update_e_price_data():
     """
