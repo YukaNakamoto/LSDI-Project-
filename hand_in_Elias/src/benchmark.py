@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from datetime import datetime, timedelta
 
-from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
+from .scraping import download_smard_energy_mix_prediction, fetch_forecast
 
 def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
