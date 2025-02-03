@@ -84,6 +84,8 @@ def get_datasets() -> pd.DataFrame: # 12:00 of every day -> add 1.5 days of valu
     avg_weather_df = get_avg_weather_data()
     dfs_to_merge.append(avg_weather_df)
 
+    dfs_to_merge = [df[~df.index.duplicated(keep='first')]for df in dfs_to_merge]
+
     merged_df = pd.concat(dfs_to_merge, axis=1, join='inner').dropna(axis=0)
     return merged_df, e_price_df.copy()
 
