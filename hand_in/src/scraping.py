@@ -315,6 +315,10 @@ def fetch_forecast(start_date, hours=None, end_date=None):
 
     return final_df
 
+import pandas as pd
+from datetime import datetime, timedelta
+import os
+
 def fetch_historical():
     client = setup_client()
     forecast_url = "https://archive-api.open-meteo.com/v1/archive"
@@ -323,7 +327,7 @@ def fetch_historical():
     # Read the last date from the existing CSV file
     try:
         df_existing = pd.read_csv(historical_csv_file)
-        df_existing =df_existing.iloc[:-1]
+        df_existing = df_existing.iloc[:-1]
         last_date = pd.to_datetime(df_existing['date']).max()
         start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
     except FileNotFoundError:
@@ -381,6 +385,12 @@ def fetch_historical():
 
     # Save the cleaned data back to CSV
     df_cleaned.to_csv(historical_csv_file, index=False)
+
+    # Check if the last two rows are duplicates and delete the last row if they are
+    if len(df_cleaned) > 1 and df_cleaned.iloc[-1].equals(df_cleaned.iloc[-2]):
+        df_cleaned = df_cleaned.iloc[:-1]
+        df_cleaned.to_csv(historical_csv_file, index=False)
+
     print(f"Forecast data appended to {historical_csv_file}.")
 
 def update_e_price_data():
