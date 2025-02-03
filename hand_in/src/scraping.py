@@ -315,11 +315,7 @@ def fetch_forecast(start_date, hours=None, end_date=None):
 
     return final_df
 
-import pandas as pd
-from datetime import datetime, timedelta
-import os
-
-def fetch_historical():
+def fetch_historical_weather():
     client = setup_client()
     forecast_url = "https://archive-api.open-meteo.com/v1/archive"
     historical_csv_file = "../data/germany_weather_average.csv"

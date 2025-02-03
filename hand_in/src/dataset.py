@@ -1,9 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from datetime import datetime, timedelta
-
-from src.scraping import download_smard_energy_mix_prediction
 
 def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
@@ -27,13 +24,11 @@ def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.
     return estimated_df
 
 def get_e_price_df() -> pd.DataFrame:
-    print("Loading E-Prices")
     e_price_df = pd.read_csv('../data/day_ahead_energy_prices.csv', delimiter=",")
 
     e_price_df = e_price_df.set_index('Datetime')
     e_price_df.index = pd.to_datetime(e_price_df.index)
     e_price_df.rename(columns={"hourly day-ahead energy price": "Price"}, inplace=True)
-    print(f"Last E-Price from: {e_price_df.index[-1]}")
 
     return e_price_df
 
@@ -53,7 +48,6 @@ def get_mix_df() -> pd.DataFrame:
 
     mix_df.set_index("Datetime", inplace=True)
     mix_df.index = pd.to_datetime(mix_df.index)
-    print(f"Last energy mix from: {mix_df.index[-1]}")
 
     return mix_df
 

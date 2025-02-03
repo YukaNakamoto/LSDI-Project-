@@ -38,14 +38,13 @@ def split(DATASET, eval_size, test_ratio=0.15):
     unique_dates = DATASET.index.date
     last_month = 24 * 31
     last_date = unique_dates[-last_month]  # Exclude the last month for benchmarking
-    print(last_date)
     
     # Exclude last date from test set allocation
     dataset_excl_last_month = DATASET[DATASET.index.date < last_date]
     
     n = len(dataset_excl_last_month)
-    # test_size = int(test_ratio * n)
-    remainder_size = n - 24
+    test_size = int(test_ratio * n)
+    remainder_size = n - test_size
     eval_size = int(eval_size * remainder_size)
     train_size = remainder_size - eval_size
     
