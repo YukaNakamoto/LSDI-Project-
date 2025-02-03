@@ -323,6 +323,7 @@ def fetch_historical():
     # Read the last date from the existing CSV file
     try:
         df_existing = pd.read_csv(historical_csv_file)
+        df_existing =df_existing.iloc[:-1]
         last_date = pd.to_datetime(df_existing['date']).max()
         start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
     except FileNotFoundError:
