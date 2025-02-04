@@ -10,7 +10,7 @@ import time
 
 dir = "./data/"
 
-def preprocess_dates(start_date: datetime, n=None, end_date=None):
+def preprocess_smard_energy_mix_prediction_dates(start_date: datetime, n=None, end_date=None):
     local_timezone = pytz.timezone("Europe/Berlin")
     start_date_str = start_date.strftime('%Y-%m-%d')
     date_string = f"{start_date_str} 00:00:00"
@@ -31,7 +31,7 @@ def preprocess_dates(start_date: datetime, n=None, end_date=None):
     return timestamp_in_milliseconds, hour_offset, delta_pred_values
 
 
-def fetch_smard_data(timestamp_in_milliseconds):
+def fetch_smard_energy_mix_prediction_data(timestamp_in_milliseconds):
     urls = {
         "Wind onshore": f"https://www.smard.de/app/chart_data/3791/DE/3791_DE_hour_{timestamp_in_milliseconds}.json",
         "Wind offshore": f"https://www.smard.de/app/chart_data/123/DE/123_DE_hour_{timestamp_in_milliseconds}.json",
@@ -49,7 +49,7 @@ def fetch_smard_data(timestamp_in_milliseconds):
     return responses
 
 
-def postprocess_data(responses, hour_offset, delta_pred_values):
+def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_pred_values):
     dfs = []
     for name, data in responses.items():
         if "series" not in data or not data["series"]:
@@ -61,7 +61,7 @@ def postprocess_data(responses, hour_offset, delta_pred_values):
         end_index = hour_offset + delta_pred_values
         day_series = series[start_index:end_index]
         dts = [datetime.fromtimestamp(dt[0] / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S') for dt in day_series]
-
+        print(day_series)
         observed_output = [item[1] / 1000 for item in day_series]  # Convert MWh to GWh
 
         df = pd.DataFrame({
@@ -79,9 +79,9 @@ def postprocess_data(responses, hour_offset, delta_pred_values):
 
 
 def download_smard_energy_mix_prediction(start_date: datetime, n, end_date=None):
-    timestamp_in_milliseconds, hour_offset, delta_pred_values = preprocess_dates(start_date, n, end_date)
-    responses = fetch_smard_data(timestamp_in_milliseconds)
-    df_merged = postprocess_data(responses, hour_offset, delta_pred_values)
+    timestamp_in_milliseconds, hour_offset, delta_pred_values = preprocess_smard_energy_mix_prediction_dates(start_date, n, end_date)
+    responses = fetch_smard_energy_mix_prediction_data(timestamp_in_milliseconds)
+    df_merged = postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_pred_values)
     return df_merged
 
 def setup_client():
