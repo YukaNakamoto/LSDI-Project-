@@ -2,6 +2,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 
+dir = "./data/"
+
 def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.DataFrame: 
     last_24h = df[col_name].iloc[-24:]
     last_date = df.index[-1]
@@ -25,7 +27,7 @@ def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.
 
 def get_e_price_df() -> pd.DataFrame:
     print("Loading E-Prices")
-    e_price_df = pd.read_csv('./data/day_ahead_energy_prices.csv', delimiter=",")
+    e_price_df = pd.read_csv(dir +'day_ahead_energy_prices.csv', delimiter=",")
 
     e_price_df = e_price_df.set_index('Datetime')
     e_price_df.index = pd.to_datetime(e_price_df.index)
@@ -34,7 +36,7 @@ def get_e_price_df() -> pd.DataFrame:
     return e_price_df
 
 def get_mix_df() -> pd.DataFrame:
-    mix_df = pd.read_csv('./data/hourly_market_mix_cleaned.csv', usecols=["Timestamp", "Biomass",
+    mix_df = pd.read_csv(dir +'hourly_market_mix_cleaned.csv', usecols=["Timestamp", "Biomass",
         "Hard Coal",
         "Hydro",
         "Lignite",
@@ -53,7 +55,7 @@ def get_mix_df() -> pd.DataFrame:
     return mix_df
 
 def get_avg_weather_data() -> pd.DataFrame:   
-    avg_weather_df = pd.read_csv('./data/germany_weather_average.csv', delimiter=",")
+    avg_weather_df = pd.read_csv(dir +'germany_weather_average.csv', delimiter=",")
 
     avg_weather_df.set_index('date', inplace=True)
     avg_weather_df.index = pd.to_datetime(avg_weather_df.index)

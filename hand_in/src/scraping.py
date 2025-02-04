@@ -8,6 +8,8 @@ from retry_requests import retry
 import os
 import time
 
+dir = "./data/"
+
 def preprocess_dates(start_date: datetime, n=None, end_date=None):
     local_timezone = pytz.timezone("Europe/Berlin")
     start_date_str = start_date.strftime('%Y-%m-%d')
@@ -318,7 +320,7 @@ def fetch_forecast(start_date, hours=None, end_date=None):
 def fetch_historical_weather():
     client = setup_client()
     forecast_url = "https://archive-api.open-meteo.com/v1/archive"
-    historical_csv_file = "./data/germany_weather_average.csv"
+    historical_csv_file = dir + "germany_weather_average.csv"
 
     # Read the last date from the existing CSV file
     try:
@@ -392,7 +394,7 @@ def fetch_historical_weather():
 def update_e_price_data():
     """
     Fetch day-ahead energy prices from SMARD.de and append any new data to
-    './data/day_ahead_energy_prices.csv' without skipping or duplicating rows.
+    dir + 'day_ahead_energy_prices.csv' without skipping or duplicating rows.
     """
     print("Starting update_smard_data function...")
     
@@ -401,7 +403,7 @@ def update_e_price_data():
 
     # Read existing data
     print("Loading existing data...")
-    e_price_df = pd.read_csv('./data/day_ahead_energy_prices.csv', delimiter=",")
+    e_price_df = pd.read_csv(dir + 'day_ahead_energy_prices.csv', delimiter=",")
     e_price_df = e_price_df.set_index('Datetime')
     e_price_df.index = pd.to_datetime(e_price_df.index)
     
@@ -495,12 +497,10 @@ def update_e_price_data():
     print(f"Final dataset contains {len(combined_df)} total records.")
     
     # Save to CSV
-    combined_df.to_csv('./data/day_ahead_energy_prices.csv', date_format='%Y-%m-%dT%H:%M:%S')
+    combined_df.to_csv(dir + 'day_ahead_energy_prices.csv', date_format='%Y-%m-%dT%H:%M:%S')
     print("Data successfully updated and saved.")
 
-
-
-def update_e_mix_data(csv_path="./data/hourly_market_mix_cleaned.csv"):
+def update_e_mix_data(csv_path=dir + "hourly_market_mix_cleaned.csv"):
     
     mix_categories = [
         "Biomass", "Hard Coal", "Hydro", "Lignite", "Natural Gas", "Nuclear",
@@ -542,7 +542,6 @@ def update_e_mix_data(csv_path="./data/hourly_market_mix_cleaned.csv"):
             continue
         
         for ts, value, category in response.json().get("data", {}).get("data", []):
-            print(value, category)
             
             if category in mix_categories:
                 if value is None:
