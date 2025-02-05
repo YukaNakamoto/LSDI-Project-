@@ -19,6 +19,7 @@ def fill_up_e_prices():
     e_price_df = pd.concat([e_price_df, estimations_df])
     
     e_price_df.index = e_price_df.index.strftime('%Y-%m-%dT%H:%M:%S')
+    
     # Save to CSV with the modified index
     e_price_df.to_csv(path, index_label="Datetime")
 
@@ -80,7 +81,7 @@ def fill_up_energy_mix():
 
 def get_by_copy(df, last_date, n):
     """
-    Copies the last n rows of a DataFrame and appends them to the end,
+    Copies the last n rows of a DataFrame one week ago and appends them to the end,
     ensuring the new index continues from last_date.
 
     Parameters:
@@ -93,18 +94,17 @@ def get_by_copy(df, last_date, n):
     """
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
-
-    last_n_rows = df.iloc[-n:].copy()
+    idx_one_week_ago = pd.date_range(start=last_date + pd.Timedelta(hours=1) - pd.Timedelta(weeks=1), periods=n, freq='H')
+    values_one_week_ago = df.copy().reindex(idx_one_week_ago)
+    
+    print(values_one_week_ago)
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=n, freq='H')
 
     # Ensure new timestamps match expected future values
-    last_n_rows.index = new_index
-
-    return last_n_rows  # Return only the extended rows
-
-
+    values_one_week_ago.index = new_index
+    return values_one_week_ago
 
 
 def preprocess_smard_energy_mix_prediction_dates(start_date: datetime, n=None, end_date=None):
@@ -160,17 +160,14 @@ def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_p
         dts = [datetime.fromtimestamp(dt[0] / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S') for dt in day_series]
         
         observed_output = []
-        last_non_null = None
 
         for ts, value in day_series:
+            date_time_ts = datetime.fromtimestamp(ts / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S')
             if value is None:
-                if last_non_null is None:
-                    raise ValueError("No new value available and no previous value to interpolate from. at {}".format(ts))
-                print("Interpolating at ts {} with previous value {}".format(ts, last_non_null))
-                observed_output.append(last_non_null)
+                print("None value detected for ts: ", date_time_ts)
+                observed_output.append(None)
             else:
                 val = value / 1000
-                last_non_null = val
                 observed_output.append(val)
 
         df = pd.DataFrame({
@@ -181,9 +178,13 @@ def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_p
         df["Datetime"] = pd.to_datetime(df["Datetime"], format="%Y-%m-%d %H:%M:%S")
         df.set_index("Datetime", inplace=True)
 
+        df.dropna(inplace=True)
+        additional_rows = get_by_copy(df, df.index[-1], 24)
+        df = pd.concat([df, additional_rows])
         dfs.append(df)
 
     df_merged = pd.concat(dfs, axis=1)
+
     return df_merged
 
 
@@ -192,6 +193,3 @@ def download_smard_energy_mix_prediction(start_date: datetime, n, end_date=None)
     responses = fetch_smard_energy_mix_prediction_data(timestamp_in_milliseconds)
     df_merged = postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_pred_values)
     return df_merged
-
-
-    
