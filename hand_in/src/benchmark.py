@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from datetime import datetime, timedelta
 

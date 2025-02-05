@@ -7,7 +7,6 @@ import requests_cache
 from retry_requests import retry
 import os
 import time
-
 dir = "./data/"
 
 def preprocess_smard_energy_mix_prediction_dates(start_date: datetime, n=None, end_date=None):
@@ -61,7 +60,7 @@ def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_p
         end_index = hour_offset + delta_pred_values
         day_series = series[start_index:end_index]
         dts = [datetime.fromtimestamp(dt[0] / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S') for dt in day_series]
-        print(day_series)
+
         observed_output = [item[1] / 1000 for item in day_series]  # Convert MWh to GWh
 
         df = pd.DataFrame({
@@ -286,6 +285,7 @@ sun_parks = [
         {"latitude": 52.4367, "longitude": 12.4514, "weight": 91}     # Brandenburg-Briest Solarpark
     ]
 
+#Return Dataframe containing Forecast Data for the given start_date and end_date or hours
 def fetch_forecast(start_date, hours=None, end_date=None):
     client = setup_client()
     forecast_url = "https://api.open-meteo.com/v1/forecast"
@@ -317,6 +317,7 @@ def fetch_forecast(start_date, hours=None, end_date=None):
 
     return final_df
 
+#Fetch historical Data and append to CSV or create new CSV
 def fetch_historical_weather():
     client = setup_client()
     forecast_url = "https://archive-api.open-meteo.com/v1/archive"
@@ -325,10 +326,11 @@ def fetch_historical_weather():
     # Read the last date from the existing CSV file
     try:
         df_existing = pd.read_csv(historical_csv_file)
-        df_existing = df_existing.iloc[:-1]
+        df_existing = df_existing.iloc[:-1]  # Drop the last row
         last_date = pd.to_datetime(df_existing['date']).max()
         start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
     except FileNotFoundError:
+        df_existing = pd.DataFrame()
         start_date = "2018-01-01"  # Default start date if file does not exist
 
     end_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -381,20 +383,68 @@ def fetch_historical_weather():
     # Drop all rows with any NaN values
     df_cleaned = df.dropna()
 
+    # Drop duplicate rows
+    df_cleaned.drop_duplicates(inplace=True)
+
     # Save the cleaned data back to CSV
     df_cleaned.to_csv(historical_csv_file, index=False)
+    print(f"Historical data appended to {historical_csv_file}.")
 
-    # Check if the last two rows are duplicates and delete the last row if they are
-    if len(df_cleaned) > 1 and df_cleaned.iloc[-1].equals(df_cleaned.iloc[-2]):
-        df_cleaned = df_cleaned.iloc[:-1]
-        df_cleaned.to_csv(historical_csv_file, index=False)
+#Fetch Forecast Data and append to CSV. Last day till now() + 5 days
+def fetch_forecast_and_update_csv():
+    # Read the existing weather data CSV
+    csv_file_path = "germany_weather_average.csv"
+    df_weather = pd.read_csv(csv_file_path, parse_dates=["date"], index_col="date")
 
-    print(f"Forecast data appended to {historical_csv_file}.")
+    # Check if the last row has the date attribute 00:00:00+0000
+    if df_weather.index[-1].time() == datetime.strptime("00:00:00+0000", "%H:%M:%S%z").time():
+        df_weather = df_weather.iloc[:-1]  # Drop the last row
+
+    # Get the last date in the CSV file
+    last_date = df_weather.index.max()
+
+    # Calculate the start date for the forecast
+    start_date = last_date + timedelta(days=1)
+    end_date = datetime.now() + timedelta(days=2)
+
+    # Setup the client and fetch the forecast data
+    client = setup_client()
+    forecast_url = "https://api.open-meteo.com/v1/forecast"
+
+    forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
+
+    params_template = {
+        "start_date": forecast_start_date,
+        "end_date": forecast_end_date,
+        "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
+    }
+    coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
+
+    params_template["hourly"] = ["wind_speed_100m"]
+    wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
+
+    params_template["hourly"] = ["direct_radiation"]
+    sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
+
+    weighted_wind_speed = calculate_weighted_averages(wind_parks_data, wind_parks, "wind_speed_100m", "weighted_wind_speed")
+    weighted_radiation = calculate_weighted_averages(sun_parks_data, sun_parks, "direct_radiation", "weighted_radiation")
+
+    coordinates_avg = coordinates_data.groupby("date").mean()
+    combined_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
+
+    # Select only the required columns
+    final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
+    final_df.index.name = "date"
+    final_df.index = final_df.index.tz_convert("UTC")
+
+    # Append the new forecast data to the existing CSV
+    updated_df = pd.concat([df_weather, final_df])
+    updated_df.to_csv(csv_file_path, date_format="%Y-%m-%d %H:%M:%S%z")
 
 def update_e_price_data():
     """
     Fetch day-ahead energy prices from SMARD.de and append any new data to
-    dir + 'day_ahead_energy_prices.csv' without skipping or duplicating rows.
+    '../data/day_ahead_energy_prices.csv' without skipping or duplicating rows.
     """
     print("Starting update_smard_data function...")
     
@@ -403,7 +453,7 @@ def update_e_price_data():
 
     # Read existing data
     print("Loading existing data...")
-    e_price_df = pd.read_csv(dir + 'day_ahead_energy_prices.csv', delimiter=",")
+    e_price_df = pd.read_csv('../data/day_ahead_energy_prices.csv', delimiter=",")
     e_price_df = e_price_df.set_index('Datetime')
     e_price_df.index = pd.to_datetime(e_price_df.index)
     
@@ -500,6 +550,8 @@ def update_e_price_data():
     combined_df.to_csv(dir + 'day_ahead_energy_prices.csv', date_format='%Y-%m-%dT%H:%M:%S')
     print("Data successfully updated and saved.")
 
+
+
 def update_e_mix_data(csv_path=dir + "hourly_market_mix_cleaned.csv"):
     
     mix_categories = [
@@ -541,8 +593,7 @@ def update_e_mix_data(csv_path=dir + "hourly_market_mix_cleaned.csv"):
             print(f"Request failed for {start} to {end}")
             continue
         
-        for ts, value, category in response.json().get("data", {}).get("data", []):
-            
+        for ts, value, category in response.json().get("data", {}).get("data", []):           
             if category in mix_categories:
                 if value is None:
                     print(f"Warning: Null value for {ts} - {category}, replacing with 0.0")

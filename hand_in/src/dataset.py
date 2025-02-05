@@ -26,7 +26,6 @@ def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.
     return estimated_df
 
 def get_e_price_df() -> pd.DataFrame:
-    print("Loading E-Prices")
     e_price_df = pd.read_csv(dir +'day_ahead_energy_prices.csv', delimiter=",")
 
     e_price_df = e_price_df.set_index('Datetime')
