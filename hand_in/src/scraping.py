@@ -390,57 +390,6 @@ def fetch_historical_weather():
     df_cleaned.to_csv(historical_csv_file, index=False)
     print(f"Historical data appended to {historical_csv_file}.")
 
-#Fetch Forecast Data and append to CSV. Last day till now() + 5 days
-def fetch_forecast_and_update_csv():
-    # Read the existing weather data CSV
-    csv_file_path = "germany_weather_average.csv"
-    df_weather = pd.read_csv(csv_file_path, parse_dates=["date"], index_col="date")
-
-    # Check if the last row has the date attribute 00:00:00+0000
-    if df_weather.index[-1].time() == datetime.strptime("00:00:00+0000", "%H:%M:%S%z").time():
-        df_weather = df_weather.iloc[:-1]  # Drop the last row
-
-    # Get the last date in the CSV file
-    last_date = df_weather.index.max()
-
-    # Calculate the start date for the forecast
-    start_date = last_date + timedelta(days=1)
-    end_date = datetime.now() + timedelta(days=2)
-
-    # Setup the client and fetch the forecast data
-    client = setup_client()
-    forecast_url = "https://api.open-meteo.com/v1/forecast"
-
-    forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
-
-    params_template = {
-        "start_date": forecast_start_date,
-        "end_date": forecast_end_date,
-        "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
-    }
-    coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
-
-    params_template["hourly"] = ["wind_speed_100m"]
-    wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
-
-    params_template["hourly"] = ["direct_radiation"]
-    sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
-
-    weighted_wind_speed = calculate_weighted_averages(wind_parks_data, wind_parks, "wind_speed_100m", "weighted_wind_speed")
-    weighted_radiation = calculate_weighted_averages(sun_parks_data, sun_parks, "direct_radiation", "weighted_radiation")
-
-    coordinates_avg = coordinates_data.groupby("date").mean()
-    combined_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
-
-    # Select only the required columns
-    final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
-    final_df.index.name = "date"
-    final_df.index = final_df.index.tz_convert("UTC")
-
-    # Append the new forecast data to the existing CSV
-    updated_df = pd.concat([df_weather, final_df])
-    updated_df.to_csv(csv_file_path, date_format="%Y-%m-%d %H:%M:%S%z")
-
 def update_e_price_data():
     """
     Fetch day-ahead energy prices from SMARD.de and append any new data to
