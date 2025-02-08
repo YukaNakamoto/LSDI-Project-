@@ -5,17 +5,23 @@ from datetime import datetime, timedelta
 
 from .scraping import download_smard_energy_mix_prediction, fetch_forecast
 
-def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame: 
-    last_24h = df[col_name].iloc[-24:]
-    
-    last_24h_mean = last_24h.mean()
-    last_24h_std= last_24h.std()
 
-    sampled = np.random.normal(last_24h_mean, last_24h_std, size=count) # assuming stationary distribution of the last 24h
-    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="H")
+def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
+    last_weeks_val = df[col_name].iloc[-24 * 7 : -24 * 6]
+
+    last_weeks_val_mean = last_weeks_val.mean()
+    last_weeks_val_std = last_weeks_val.std()
+
+    sampled = np.random.normal(
+        last_weeks_val_mean, last_weeks_val_std, size=count
+    )  # assuming stationary distribution of the last 24h
+    new_indices = pd.date_range(
+        start=last_date + pd.Timedelta(hours=1), periods=count, freq="H"
+    )
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
-    
+
     return estimated_df
+
 
 def get_by_copy(df, last_date, n):
     """
@@ -36,7 +42,9 @@ def get_by_copy(df, last_date, n):
     last_n_rows = df.iloc[-n:].copy()
 
     # Generate new timestamps starting from last_date + 1 hour
-    new_index = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=n, freq='H')
+    new_index = pd.date_range(
+        start=last_date + pd.Timedelta(hours=1), periods=n, freq="H"
+    )
 
     # Ensure new timestamps match expected future values
     last_n_rows.index = new_index
@@ -44,23 +52,25 @@ def get_by_copy(df, last_date, n):
     return last_n_rows  # Return only the extended rows
 
 
-def extend_by_predictions_and_samples(df, last_date, n = 24) -> pd.DataFrame: 
-    
+def extend_by_predictions_and_samples(df, last_date, n=24) -> pd.DataFrame:
+
     price_df = df[["Price"]]
     copy_mix_df = df[["Hydro", "Pumped storage generation"]]
-    pred_mix_df = df[["Solar","Wind offshore","Wind onshore"]]
-    weather_df = df[["temperature_2m","precipitation","wind_speed_100m","direct_radiation"]]
-
+    pred_mix_df = df[["Solar", "Wind offshore", "Wind onshore"]]
+    weather_df = df[
+        ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
+    ]
 
     price_df = get_by_estimations(price_df, last_date, "Price", n)
-    copy_mix_df = get_by_copy(copy_mix_df,last_date, n)
-    pred_mix_df = download_smard_energy_mix_prediction(last_date + timedelta(hours=1), n)
+    copy_mix_df = get_by_copy(copy_mix_df, last_date, n)
+    pred_mix_df = download_smard_energy_mix_prediction(
+        last_date + timedelta(hours=1), n
+    )
 
     weather_df = fetch_forecast(last_date, n)
 
-    extended_merged_df = pd.concat([price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join='inner')
+    extended_merged_df = pd.concat(
+        [price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join="inner"
+    )
 
     return pd.concat([df, extended_merged_df])
-
-
-
