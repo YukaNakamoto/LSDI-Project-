@@ -165,8 +165,20 @@ def create_features(df):
             df["Pumped storage generation"].rolling(window=window).mean()
         )
 
-    for window in [24, 72, 168]:  # 1 day 3 days, and 1 week
+    for window in [
+        24 * 2,
+        24 * 3,
+        24 * 5,
+        24 * 7,
+        24 * 9,
+        24 * 11,
+        24 * 13,
+        24 * 14,
+    ]:  # 1 day 2 days 3 days 4 days 5 days 6 days and 1 week
         df[f"ma_{int(window / 24)}_days"] = df["Price"].rolling(window=window).mean()
+        df[f"ma_{int(window / 24)}_days_pumped_storage_generation"] = (
+            df["Pumped storage generation"].rolling(window=window).mean()
+        )
 
     return df
 
