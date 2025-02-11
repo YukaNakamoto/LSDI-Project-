@@ -104,6 +104,7 @@ Our project, the “BTW 2025 Data Science Challenge,” aims to develop predicti
 #TO DO: Rewrite second part: It is a part of the challenge not our project - we are participating in the data science challenge etc.
 
 ### 2. Background & Domain Knowledge
+
 ## 2.1 Energy Market and Price Dynamics
 In Germany, electricity pricing comprises consumer electricity fees and wholesale market prices, with the day-ahead market being a key indicator of wholesale price fluctuations. Prices in this market are determined by the “merit order principle,” in which power plants with the lowest marginal costs are utilized first to meet demand. Because renewable energy sources generally have low marginal costs, they are dispatched preferentially. However, oversupply in addition of limitations in the grid can lead to negative prices (Wissenschaftliche Dienste, 2022).
 
