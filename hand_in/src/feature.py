@@ -171,6 +171,8 @@ def create_features(df):
             df["Pumped storage generation"].rolling(window=window * 24).mean()
         )
 
+    # df.dropna(inplace=True)
+
     return df
 
 

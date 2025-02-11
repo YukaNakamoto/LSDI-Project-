@@ -154,11 +154,11 @@ def plot_linear_regression(index, y_test, predictions):
 
 def plot_benchmark_predictions(
     y_actual,
-    prophet_X_predict,
-    prophet_prediction,
     X_predict,
-    lr_prediction,
-    xgb_prediction,
+    prophet_X_predict=None,
+    prophet_prediction=None,
+    lr_prediction=None,
+    xgb_prediction=None,
 ):
     """
     Plots energy price predictions from different models against actual prices.
@@ -184,30 +184,33 @@ def plot_benchmark_predictions(
         label="Actual Price",
         color="navy",
     )
-    plt.step(
-        prophet_X_predict["ds"],
-        prophet_prediction,
-        linewidth=1.5,
-        where="mid",
-        label="Prophet",
-        color="darkorange",
-    )
-    plt.step(
-        X_predict.index,
-        lr_prediction,
-        linewidth=1.5,
-        where="mid",
-        label="Linear Regression",
-        color="green",
-    )
-    plt.step(
-        X_predict.index,
-        xgb_prediction,
-        linewidth=1.5,
-        where="mid",
-        label="XGBoost",
-        color="brown",
-    )
+    if prophet_X_predict is not None:
+        plt.step(
+            prophet_X_predict["ds"],
+            prophet_prediction,
+            linewidth=1.5,
+            where="mid",
+            label="Prophet",
+            color="orange",
+        )
+    if lr_prediction is not None:
+        plt.step(
+            X_predict.index,
+            lr_prediction,
+            linewidth=1.5,
+            where="mid",
+            label="Linear Regression",
+            color="green",
+        )
+    if xgb_prediction is not None:
+        plt.step(
+            X_predict.index,
+            xgb_prediction,
+            linewidth=1.5,
+            where="mid",
+            label="XGBoost",
+            color="brown",
+        )
 
     # Formatting
     plt.xlabel("Date", fontsize=12)

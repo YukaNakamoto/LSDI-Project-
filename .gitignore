@@ -1,3 +1,5 @@
 pj-env
 app.log
 .cache.sqlite
+.ipynb_checkpoints
+hand_in/src/__pycache__

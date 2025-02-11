@@ -746,126 +746,150 @@ def fetch_historical_weather():
     df_cleaned.to_csv(historical_csv_file, index=False)
     print(f"Historical data appended to {historical_csv_file}.")
 
-
-def update_e_price_data():
+def update_e_price_data(csv_dir: str = dir,csv_filename: str = "day_ahead_energy_prices.csv",start_date_str: str = "2018-10-01"):
     """
-    Fetch day-ahead energy prices from SMARD.de and append any new data to
-    '../data/day_ahead_energy_prices.csv' without skipping or duplicating rows.
+    Fetches entire weeks of day-ahead energy price data from SMARD.de.
+    - If the CSV does not exist or is empty, fetches all weeks from start_date to today.
+    - If the CSV exists, fetches only missing weeks.
+    - Ensures correct handling of DST shifts.
+    - Saves data without duplicates.
+
+    Parameters
+    ----------
+    csv_dir : str
+        Directory where the CSV file is stored.
+    csv_filename : str
+        Name of the CSV file.
+    start_date_str : str
+        Earliest date to fetch if the file is missing or empty.
     """
-    print("Starting update_smard_data function...")
+    csv_file = os.path.join(csv_dir, csv_filename)
+    file_exists = os.path.isfile(csv_file)
 
-    # Define Berlin timezone
-    tz_berlin = pytz.timezone("Europe/Berlin")
+    # Check if the file exists and has data
+    if file_exists and os.path.getsize(csv_file) > 0:
+        existing_df = pd.read_csv(csv_file, parse_dates=["Datetime"], index_col="Datetime")
+        existing_df.sort_index(inplace=True)
+        last_date_in_file = existing_df.index[-1].date()
+        fetch_start_date = last_date_in_file + timedelta(days=1)  # Start from the next missing day
+        print(f"CSV found. Last date in file: {last_date_in_file}. Fetching missing weeks from {fetch_start_date}...")
+    else:
+        print(f"CSV not found or empty. Fetching all data from {start_date_str}...")
+        fetch_start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        existing_df = pd.DataFrame()  # No existing data
 
-    # Read existing data
-    print("Loading existing data...")
-    e_price_df = pd.read_csv("../data/day_ahead_energy_prices.csv", delimiter=",")
-    e_price_df = e_price_df.set_index("Datetime")
-    e_price_df.index = pd.to_datetime(e_price_df.index)
+    # Fetch full weeks at a time
+    today = datetime.now().date()
+    list_of_weekly_dfs = []
 
-    print(f"Loaded {len(e_price_df)} existing records.")
+    current_date = fetch_start_date
+    while current_date <= today:
+        try:
+            weekly_df = fetch_full_week_data(current_date)
+            if weekly_df is not None and not weekly_df.empty:
+                list_of_weekly_dfs.append(weekly_df)
+        except Exception as e:
+            print(f"Failed to fetch data for week starting {current_date}: {e}")
 
-    now = datetime.now(tz_berlin)
+        time.sleep(0.5)  # Pause to avoid spamming API
+        current_date += timedelta(weeks=1)
 
-    # Calculate how many weeks to go back
-    try:
-        int_weeks = (
-            abs(int((e_price_df.index[-1].tz_localize("Europe/Berlin") - now).days / 7))
-            + 1
-        )
-        print(f"Fetching data for the past {int_weeks} weeks...")
-    except Exception as e:
-        print(f"Error calculating weeks to fetch: {e}")
+    # Merge new data if available
+    if not list_of_weekly_dfs:
+        print("No new data fetched. Exiting...")
         return
 
-    # Calculate last Monday in Berlin time
-    days_since_monday = now.weekday()
-    last_monday_berlin = now - timedelta(days=days_since_monday)
-    last_monday_berlin = last_monday_berlin.replace(
+    new_data_df = pd.concat(list_of_weekly_dfs, axis=0)
+    new_data_df.sort_index(inplace=True)
+
+    # Merge with existing data
+    combined_df = pd.concat([existing_df, new_data_df], axis=0)
+    combined_df = combined_df[~combined_df.index.duplicated(keep="first")]
+    combined_df.sort_index(inplace=True)
+
+    save_to_csv(combined_df, csv_file)
+
+    print(f"Appended {len(new_data_df)} new rows. Final dataset contains {len(combined_df)} rows.")
+    print("Update complete.")
+
+
+def fetch_full_week_data(target_date):
+    """
+    Fetches an entire week's day-ahead energy prices from SMARD.de,
+    converting timestamps to Berlin local time.
+
+    Parameters
+    ----------
+    target_date : datetime.date
+        A date in the week to fetch (any date will be rounded to the start of its week).
+
+    Returns
+    -------
+    pd.DataFrame or None
+        A DataFrame with index=Datetime (local Berlin time) and one column:
+        "hourly day-ahead energy price". The DataFrame will contain 168 hours
+        unless there are missing hours from the API.
+    """
+    local_tz = pytz.timezone("Europe/Berlin")
+
+    # Determine the Monday 00:00 of the target week
+    dt_midnight_local = local_tz.localize(datetime(target_date.year, target_date.month, target_date.day, 0, 0))
+    days_to_subtract = dt_midnight_local.weekday()
+    monday_local = (dt_midnight_local - timedelta(days=days_to_subtract)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    # Convert Berlin time to UTC and get the timestamp in milliseconds
-    last_monday_utc = last_monday_berlin.astimezone(pytz.UTC)
-    last_monday_utc_ms = int(last_monday_utc.timestamp() * 1000)
+    # Convert Monday local time to UTC for SMARD request
+    monday_utc = monday_local.astimezone(pytz.UTC)
+    monday_ms = int(monday_utc.timestamp() * 1000)  # SMARD requires milliseconds
 
-    delay = 0.5  # seconds
-    base_url = "https://www.smard.de/app/chart_data/4169/DE/4169_DE_hour_{}.json"
+    # Fetch data from SMARD API
+    url = f"https://www.smard.de/app/chart_data/4169/DE/4169_DE_hour_{monday_ms}.json"
+    response = requests.get(url)
+    if response.status_code != 200:
+        print(f"Failed to fetch data from SMARD API for week starting {monday_local.date()}: {response.status_code}")
+        return None
 
-    # Use a dictionary to store unique timestamps and prices
-    energy_ts_data = {}
+    json_data = response.json()
+    if "series" not in json_data or not json_data["series"]:
+        print(f"No 'series' data found for week starting {monday_local.date()}.")
+        return None
 
-    for i in range(int_weeks):
-        print(f"Fetching data for week {i+1} (starting {last_monday_berlin.date()})...")
+    # Convert timestamps from UTC → Berlin local time
+    data_rows = []
+    for (ts_ms, price_val) in json_data["series"]:
+        if price_val is None or price_val == "":
+            price_val = float("nan")  # Mark as NaN instead of dropping
 
-        last_monday_berlin = last_monday_utc.astimezone(tz_berlin)
-        last_monday_utc = last_monday_berlin.astimezone(pytz.UTC)
-        last_monday_utc_ms = int(last_monday_utc.timestamp() * 1000)
+        dt_utc = datetime.utcfromtimestamp(ts_ms / 1000.0).replace(tzinfo=pytz.UTC)
+        dt_local = dt_utc.astimezone(local_tz).replace(tzinfo=None)
+        data_rows.append((dt_local, price_val))
 
-        # Adjust timestamp if DST is in effect
-        if last_monday_berlin.dst() != timedelta(0):
-            last_monday_utc_ms -= 60 * 60 * 1000
+    if not data_rows:
+        return None
 
-        try:
-            response = requests.get(base_url.format(last_monday_utc_ms))
-            response.raise_for_status()
-            json_data = response.json()
-            print("Successfully fetched data.")
-        except requests.exceptions.HTTPError as http_err:
-            print(f"HTTP error occurred: {http_err}")
-            continue
-        except requests.exceptions.JSONDecodeError as json_err:
-            print(f"JSON decode error: {json_err}")
-            continue
+    # Create DataFrame, indexed by local time
+    df_week = pd.DataFrame(data_rows, columns=["Datetime", "hourly day-ahead energy price"])
+    df_week.sort_values("Datetime", inplace=True)
+    df_week.set_index("Datetime", inplace=True)
 
-        # Parse the JSON response
-        parsed_json = dict(json_data)
+    print(f"Fetched {len(df_week)} rows for week starting {monday_local.date()}.")
+    return df_week
 
-        for ts, price in parsed_json.get("series", []):
-            try:
-                price_float = float(price)
-                ts_datetime = (
-                    datetime.fromtimestamp(ts / 1000).replace(tzinfo=None).isoformat()
-                )
-                energy_ts_data[ts_datetime] = price_float
-            except TypeError:
-                print(f"Skipping invalid data point: ts={ts}, price={price}")
-                continue
 
-        # Move one week back
-        last_monday_utc = last_monday_utc - timedelta(weeks=1)
-        time.sleep(delay)
+def save_to_csv(df: pd.DataFrame, csv_path: str):
+    """
+    Saves a DataFrame to CSV with a standardized date format.
 
-    print(f"Fetched {len(energy_ts_data)} new data points.")
-
-    # Convert the dictionary to a sorted list of tuples
-    energy_ts_data_sorted = sorted(energy_ts_data.items())
-
-    # Create a DataFrame from the new data
-    new_data_df = pd.DataFrame(
-        energy_ts_data_sorted, columns=["Datetime", "hourly day-ahead energy price"]
-    )
-    new_data_df["Datetime"] = pd.to_datetime(new_data_df["Datetime"])
-    new_data_df.set_index("Datetime", inplace=True)
-
-    # Remove any duplicates in the newly fetched data
-    new_data_df = new_data_df[~new_data_df.index.duplicated(keep="first")]
-
-    print(f"New data contains {len(new_data_df)} unique timestamps.")
-
-    # Combine with existing data, making sure to remove duplicates
-    combined_df = pd.concat([e_price_df, new_data_df])
-    combined_df = combined_df[~combined_df.index.duplicated(keep="first")]
-    combined_df.sort_index(inplace=True)
-    combined_df.dropna(inplace=True)
-
-    print(f"Final dataset contains {len(combined_df)} total records.")
-
-    # Save to CSV
-    combined_df.to_csv(
-        dir + "day_ahead_energy_prices.csv", date_format="%Y-%m-%dT%H:%M:%S"
-    )
-    print("Data successfully updated and saved.")
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing hourly day-ahead energy price data.
+    csv_path : str
+        File path where the CSV should be saved.
+    """
+    df.sort_index(inplace=True)
+    df.to_csv(csv_path, date_format="%Y-%m-%dT%H:%M:%S")
 
 
 def update_e_mix_data(csv_path=dir + "hourly_market_mix_cleaned.csv"):
