@@ -99,9 +99,9 @@ For any inquiries, please contact `your-email@domain.com`.
 
 Forecasting energy prices in Germany is a challenging task due to the complex interplay of multiple factors, including renewable energy generation, fossil fuel prices, weather conditions, and market regulations. The growing share of renewables in the country’s power grid has introduced additional volatility, making accurate price prediction even more difficult.
 
-Our project, the “BTW 2025 Data Science Challenge,” aims to develop predictive models to predict hourly day-ahead energy prices for Germany on February 18, 2025, using historical data. This report begins with an overview of the domain knowledge surrounding Germany’s energy market, followed by a discussion of the data sources used in modeling. Subsequent sections will detail the methodology, present modeling results, and offer conclusions.
+Forecasting energy prices in Germany is a challenging task due to the complex interplay of multiple factors, including renewable energy generation, fossil fuel prices, weather conditions, and market regulations. The growing share of renewables in the country’s power grid has introduced additional volatility, making accurate price prediction even more difficult.
 
-#TO DO: Rewrite second part: It is a part of the challenge not our project - we are participating in the data science challenge etc.
+As participants in the “BTW 2025 Data Science Challenge,” our goal is to build predictive models that forecast hourly day-ahead energy prices for Germany on February 18, 2025, using historical data. This report begins with an overview of the domain knowledge surrounding Germany’s energy market, followed by a discussion of the data sources used in modeling. Subsequent sections detail the methodology, present modeling results, and offer conclusions.
 
 ### 2. Background & Domain Knowledge
 
