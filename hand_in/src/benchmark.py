@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
 
@@ -37,7 +38,7 @@ def get_by_copy(df, last_date, n):
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
 
-    last_n_rows = df.iloc[-n:].copy()
+    last_n_rows = df.iloc[-(n + 24 * 7):- (24 * 7)].copy()
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(
@@ -53,8 +54,7 @@ def get_by_copy(df, last_date, n):
 def extend_by_predictions_and_samples(df, last_date, n=24) -> pd.DataFrame:
 
     price_df = df[["Price"]]
-    copy_mix_df = df[["Hydro", "Pumped storage generation"]]
-    pred_mix_df = df[["Solar", "Wind offshore", "Wind onshore"]]
+    copy_mix_df = df[["Hydro", "Pumped storage generation", "Solar", "Wind offshore", "Wind onshore"]]
     weather_df = df[
         ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
     ]
@@ -63,12 +63,10 @@ def extend_by_predictions_and_samples(df, last_date, n=24) -> pd.DataFrame:
 
     copy_mix_df = get_by_copy(copy_mix_df, last_date, n)
 
-    pred_mix_df = download_smard_energy_mix_prediction(last_date, n, pred_mix_df)
-
     weather_df = fetch_forecast(last_date, n)
 
     extended_merged_df = pd.concat(
-        [price_df, copy_mix_df, pred_mix_df, weather_df], axis=1, join="inner"
+        [price_df, copy_mix_df, weather_df], axis=1, join="inner"
     )
 
     return pd.concat([df, extended_merged_df])

@@ -70,11 +70,9 @@ def fill_up_energy_mix(end_date):
     output_path = os.path.join(dir, 'filled_hourly_market_mix_cleaned.csv')
     
     # Load the dataset
-    columns = ["Timestamp", "Biomass", "Hard Coal", "Hydro", "Lignite", "Natural Gas", 
-               "Nuclear", "Other", "Pumped storage generation", "Solar", "Wind offshore", "Wind onshore"]
     new_columns = ["Pumped storage generation", "Solar", "Wind offshore", "Wind onshore", "Hydro"]
 
-    mix_df = pd.read_csv(input_path, usecols=columns, delimiter=",")
+    mix_df = pd.read_csv(input_path, delimiter=",")
     
     # Convert timestamp column to datetime index
     mix_df["Timestamp"] = pd.to_datetime(mix_df["Timestamp"])
@@ -85,31 +83,14 @@ def fill_up_energy_mix(end_date):
     
     if hours_to_fill > 0:
         # Split dataset into relevant subsets
-        hydro_df = mix_df[["Hydro", "Pumped storage generation"]]
-        renewable_df = mix_df[["Solar", "Wind offshore", "Wind onshore"]]
-        
-        # Fill missing hydro values by copying past values
-        hydro_filled_df = get_by_copy(hydro_df, last_date, hours_to_fill)
-        
-        # Fetch predicted energy mix data from SMARD API
-        prediction_start = last_date + timedelta(hours=1)
-        predicted_mix_df = download_smard_energy_mix_prediction(prediction_start, hours_to_fill)
-        
-        if predicted_mix_df.empty:
-            predicted_mix_df = get_by_copy(renewable_df, last_date, hours_to_fill)
-        else:
-            missing_hours = int((prediction_date_end - predicted_mix_df.index[-1]).total_seconds() / 3600)
-            if missing_hours > 0:
-                last_valid_date = predicted_mix_df.index[-1] if not predicted_mix_df.empty else renewable_df.index[-1]
-                additional_data = get_by_copy(renewable_df, last_valid_date, missing_hours)
-                predicted_mix_df = pd.concat([predicted_mix_df, additional_data])
+        old_mix_df = mix_df[new_columns]
+        copy_mix_df = get_by_copy(old_mix_df, last_date, hours_to_fill)
         
         # Combine estimated and predicted values
-        estimations_df = pd.concat([hydro_filled_df, predicted_mix_df], axis=1, join='inner')
-        estimations_df.to_csv(debug_path, index_label="Timestamp", mode='w')
+        copy_mix_df.to_csv(debug_path, index_label="Timestamp", mode='w')
         
         # Extend the original dataset
-        mix_df = pd.concat([mix_df[new_columns], estimations_df])
+        mix_df = pd.concat([old_mix_df, copy_mix_df])
         mix_df.index = mix_df.index.strftime('%Y-%m-%dT%H:%M:%S')
     
     # Ensure the output file exists before writing
@@ -123,7 +104,7 @@ def fill_up_energy_mix(end_date):
 
 def get_by_copy(df, last_date, n):
     """
-    Copies the last n rows of a DataFrame and appends them to the end,
+    Copies the last n rows of a DataFrame from last week and appends them to the end,
     ensuring the new index continues from last_date.
 
     Parameters:
@@ -137,7 +118,7 @@ def get_by_copy(df, last_date, n):
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
 
-    last_n_rows = df.iloc[-n - (24 * 7):-(24 * 7)].copy()
+    last_n_rows = df.iloc[-(n + 24 * 7):- (24 * 7)].copy() # today one week ago
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(
