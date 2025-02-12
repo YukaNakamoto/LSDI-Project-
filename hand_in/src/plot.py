@@ -278,7 +278,7 @@ def plot_final_prediction(prediction, date):
             prediction.index,
             prediction["yhat"],
             linewidth=1.5,
-            where="pre",
+            where="post",
             label="Prophet",
             color="orange",
         )
