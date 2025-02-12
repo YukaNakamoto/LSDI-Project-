@@ -106,11 +106,9 @@ As participants in the “BTW 2025 Data Science Challenge,” our goal is to bui
 ### 2. Background & Domain Knowledge
 
 ## 2.1 Energy Market and Price Dynamics
-In Germany, electricity pricing comprises consumer electricity fees and wholesale market prices, with the day-ahead market being a key indicator of wholesale price fluctuations. Prices in this market are determined by the “merit order principle,” in which power plants with the lowest marginal costs are utilized first to meet demand. Because renewable energy sources generally have low marginal costs, they are dispatched preferentially. However, oversupply in addition of limitations in the grid can lead to negative prices (Wissenschaftliche Dienste, 2022).
+In Germany, electricity pricing comprises consumer electricity fees and wholesale market prices, with the day-ahead market serving as a key indicator of wholesale price fluctuations. Prices in this market are determined by the “merit order principle,” in which the power plants with the lowest marginal costs are used first to meet demand; ultimately, the price is set by the last plant needed to satisfy demand. Because renewable energy sources generally have low marginal costs, they are dispatched preferentially. However, oversupply, along with grid limitations, can lead to negative prices (Wissenschaftliche Dienste, 2022).
 
-**These dynamics underscore the importance of closely examining both supply-side and demand-side variables when forecasting energy prices.** # TO DO: decide if we include demand in the background knowledge
-
-#TO DO: Price determined by last power plant
+These dynamics underscore the importance of closely examining both supply-side and demand-side factors when forecasting energy prices.
 
 ## 2.2 Energy Mix
 Germany’s energy mix has evolved significantly, with the share of renewables reaching about 50% of total generation in 2023 (BMWK-Energiewende, 2024). Among these, wind and solar power dominate:
