@@ -117,9 +117,9 @@ Germany’s energy mix has evolved significantly, with the share of renewables r
 
 Despite the rise in renewables, fossil fuels—including hard coal, lignite, and natural gas—still play a critical role. They contribute to price volatility, influenced by fluctuating fuel costs and carbon pricing (Nature, 2024). Understanding both the renewable and fossil-fuel components of the energy mix is therefore crucial for accurate price forecasting.
 
-#TO DO: Add hyptothesis on how the energy mix influences the prices
+Hypothesis
+We hypothesize that there is an inverse relationship between renewable energy production (including solar, wind onshore, wind offshore, and hydro) and next-day energy prices. In other words, as renewable generation increases, the day-ahead market price tends to decrease, largely due to the low marginal costs associated with renewable sources.
 
-#TO DO: check sources, decide if we keep the sources because proof is in our model results
 
 ## 2.3 Weather Impacts
 Weather conditions significantly affect energy supply and demand, thereby influencing prices. Key factors include:
