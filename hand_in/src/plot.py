@@ -49,7 +49,7 @@ def plot_price_split(
     plt.show()
 
 
-def feature_importance(models):
+def plot_feature_importance(models):
     sns.set_theme()
     fig, axs = plt.subplots(ncols=2, figsize=(16, 6))
 
@@ -150,7 +150,6 @@ def plot_linear_regression(index, y_test, predictions):
     print(f"Root Mean Squared Error: {rmse}")
     print(f"Mean Absolute Error: {mae}")
     print(f"R-squared: {r2}")
-
 
 def plot_benchmark_predictions(
     y_actual,

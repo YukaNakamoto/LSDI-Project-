@@ -37,31 +37,6 @@ def select_features():
         "hour",
         "dayofyear",
         "dayofweek",
-        "ma_2_hours",
-        "ma_3_hours",
-        "ma_4_hours",
-        "ma_5_hours",
-        "ma_6_hours",
-        "ma_7_hours",
-        "ma_8_hours",
-        "ma_9_hours",
-        "ma_10_hours",
-        "ma_11_hours",
-        "ma_12_hours",
-        "ma_13_hours",
-        "ma_14_hours",
-        "ma_15_hours",
-        "ma_16_hours",
-        "ma_17_hours",
-        "ma_18_hours",
-        "ma_19_hours",
-        "ma_20_hours",
-        "ma_21_hours",
-        "ma_22_hours",
-        "ma_23_hours",
-        "ma_1_days",
-        "ma_3_days",
-        "ma_7_days",
         "Biomass",
         "Hard Coal",
         "Hydro",
@@ -70,8 +45,6 @@ def select_features():
         "Nuclear",
         "Other",
         "Pumped storage generation",
-        "ma_3_hours_pumped_storage_generation",
-        "ma_6_hours_pumped_storage_generation",
         "Solar",
         "Wind offshore",
         "Wind onshore",
@@ -80,6 +53,14 @@ def select_features():
         "wind_speed_100m",
         "direct_radiation",
     ]
+
+    for i in range(2, 24):
+        FEATURES.append(f'ma_{i}_hours')
+        FEATURES.append(f'ma_{i}_hours_pumped_storage_generation')
+
+    for i in range(1, 15):
+        FEATURES.append(f'ma_{i}_days')
+        FEATURES.append(f'ma_{i}_days_pumped_storage_generation')
 
     DEFAULT_FEATURES = [
         "hour",

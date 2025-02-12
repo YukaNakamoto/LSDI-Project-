@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
 import requests
 import openmeteo_requests
@@ -672,7 +672,7 @@ def fetch_historical_weather():
         df_existing = pd.DataFrame()
         start_date = "2018-01-01"  # Default start date if file does not exist
 
-    end_date = datetime.utcnow().strftime("%Y-%m-%d")
+    end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Ensure end_date is greater than or equal to start_date
     if datetime.strptime(end_date, "%Y-%m-%d") < datetime.strptime(
@@ -740,7 +740,7 @@ def fetch_historical_weather():
     df_cleaned = df.dropna()
 
     # Drop duplicate rows
-    df_cleaned.drop_duplicates(inplace=True)
+    df_cleaned = df_cleaned.drop_duplicates()
 
     # Save the cleaned data back to CSV
     df_cleaned.to_csv(historical_csv_file, index=False)
@@ -779,7 +779,7 @@ def update_e_price_data(csv_dir: str = dir,csv_filename: str = "day_ahead_energy
         existing_df = pd.DataFrame()  # No existing data
 
     # Fetch full weeks at a time
-    today = datetime.now().date()
+    today = datetime.now().date() + timedelta(days=1)
     list_of_weekly_dfs = []
 
     current_date = fetch_start_date

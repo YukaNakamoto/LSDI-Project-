@@ -36,13 +36,15 @@ def init_prophet_model(FEATURES):
     return model
 
 
-def prophet_predict(features, train, test, scalar):
+def prophet(features, X_train, y_train, X_test, scalar):
+    
+    X_train["y"] = y_train
+    
     # Initialize Prophet model
     model = init_prophet_model(features)
 
     train_data = (
-        train.rename(columns={"Price": "y"})
-        .reset_index()
+        X_train.reset_index()
         .rename(columns={"index": "ds"})
         .dropna()
     )
@@ -50,10 +52,10 @@ def prophet_predict(features, train, test, scalar):
     model.fit(train_data)
 
     test_data_prophet = (
-        test.copy().reset_index().rename(columns={"index": "ds"}).dropna()
+        X_test.copy().reset_index().rename(columns={"index": "ds"}).dropna()
     )
-    test_data_prophet.drop(columns=["Price"])
     predictions = model.predict(test_data_prophet)["yhat"]
+    
     if scalar:
         predictions = unnormalize(predictions, scalar)
     return predictions
@@ -107,7 +109,6 @@ def linear_regression(X_train, y_train, X_test, y_test, scalar):
     merged_cleaned = merged.dropna()
 
     X_test_cleaned = merged_cleaned.iloc[:, :-1]
-    y_test_cleaned = merged_cleaned.iloc[:, -1]
 
     # Fit the model
     model = LinearRegression()
@@ -121,15 +122,20 @@ def linear_regression(X_train, y_train, X_test, y_test, scalar):
     return predictions
 
 
-def calculate_error_metrics(y_true, y_preds):
+def calculate_error_metrics(y_true, y_test_interval, y_preds):
     results = []
     models = [
         "Linear Regression",
         "Prophet",
-        "XGBoost",
+        "XGBoost (RMSE)",
+        "XGBoost (MAE)",
     ]
 
     for model_name, y_pred in zip(models, y_preds):
+
+        if model_name in ["XGBoost (RMSE)", "XGBoost (MAE)"]:
+            y_true = y_test_interval
+
 
         mae = mean_absolute_error(y_true, y_pred)
         mse = mean_squared_error(y_true, y_pred)

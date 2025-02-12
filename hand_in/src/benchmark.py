@@ -1,11 +1,8 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 
 from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
 
-
-def get_estimations(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
+def get_estimation(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
     last_24h_from_last_week = df[col_name].iloc[-24 * 7: -24 * 6]
     
     last_24h_from_last_week_mean = last_24h_from_last_week.mean()
@@ -23,7 +20,6 @@ def get_estimations(df, last_date, col_name, count = None, final_date=None) -> p
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
     
     return estimated_df
-
 
 def get_by_copy(df, last_date, n):
     """
@@ -63,7 +59,7 @@ def extend_by_predictions_and_samples(df, last_date, n=24) -> pd.DataFrame:
         ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
     ]
 
-    price_df = get_by_estimations(price_df, last_date, "Price", n)
+    price_df = get_estimation(price_df, last_date, "Price", n)
 
     copy_mix_df = get_by_copy(copy_mix_df, last_date, n)
 
@@ -76,42 +72,3 @@ def extend_by_predictions_and_samples(df, last_date, n=24) -> pd.DataFrame:
     )
 
     return pd.concat([df, extended_merged_df])
-
-
-def print_date_ranges(
-    X_train_prophet, X_train, y_train, y_actual, prophet_X_predict, X_predict
-):
-    """
-    Prints the date ranges of various datasets in a structured table format.
-
-    Parameters:
-    - X_train_prophet: DataFrame with 'ds' column containing timestamps.
-    - X_train: DataFrame or Series with a DateTimeIndex.
-    - y_train: DataFrame or Series with a DateTimeIndex.
-    - y_actual: DataFrame or Series with a DateTimeIndex.
-    - prophet_X_predict: DataFrame with 'ds' column containing timestamps.
-    - X_predict: DataFrame or Series with a DateTimeIndex.
-    """
-
-    data = [
-        [
-            "X_train_prophet",
-            str(X_train_prophet["ds"].iloc[0]),
-            str(X_train_prophet["ds"].iloc[-1]),
-        ],
-        ["X_train", str(X_train.index[0]), str(X_train.index[-1])],
-        ["y_train", str(y_train.index[0]), str(y_train.index[-1])],
-        ["y_actual", str(y_actual.index[0]), str(y_actual.index[-1])],
-        [
-            "prophet_X_predict",
-            str(prophet_X_predict["ds"].iloc[0]),
-            str(prophet_X_predict["ds"].iloc[-1]),
-        ],
-        ["X_predict", str(X_predict.index[0]), str(X_predict.index[-1])],
-    ]
-
-    # Print in table format with correct alignment
-    print(f"{'Dataset':<20} {'Start Date':<22} {'End Date'}")
-    print("=" * 70)
-    for row in data:
-        print(f"{row[0]:<20} {row[1]:<22} {row[2]}")
