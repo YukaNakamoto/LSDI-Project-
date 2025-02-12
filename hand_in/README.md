@@ -147,7 +147,9 @@ After cleaning the data, we merged different datasets to establish a comprehensi
 We explored the relationship between different factors (weather variables, energy mix) and energy prices. Initial findings revealed an inverse correlation between renewable energy generation (solar, wind onshore, wind offshore, hydro) and energy prices, with an observed moderate negative correlation coefficient of -0.312. (pic a)
 
 ## 3.4 Data Loading
-#DO TO: Explanation for removing outliers
+In handling missing values, we removed all rows containing missing entries in either the energy price or energy mix columns. The weather dataset was complete, so no additional steps were necessary for that. Since nuclear energy production reporting ceased in 2024, we set any missing nuclear values to 0.0 from that point onward.
+
+For outlier removal, we employed two different approaches. When conducting statistical tests, we used the Interquartile Range (IQR) method to identify and exclude extreme values. For model training, outliers were removed manually using a slider in the “Configuration” interface, allowing fine-grained control over which data points to retain.
 
 ### 4. Features
 
