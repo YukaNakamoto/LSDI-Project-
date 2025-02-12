@@ -5,20 +5,23 @@ from datetime import datetime, timedelta
 from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
 
 
-def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
-    last_24h = df[col_name].iloc[-24:]
+def get_estimations(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
+    last_24h_from_last_week = df[col_name].iloc[-24 * 7: -24 * 6]
+    
+    last_24h_from_last_week_mean = last_24h_from_last_week.mean()
+    last_24h_from_last_week_std= last_24h_from_last_week.std()
 
-    last_24h_mean = last_24h.mean()
-    last_24h_std = last_24h.std()
+    if final_date:
+        count = int((final_date - last_date).total_seconds() / 3600)
+    elif count:
+        count = count
+    else:
+        count = 48
 
-    sampled = np.random.normal(
-        last_24h_mean, last_24h_std, size=count
-    )  # assuming stationary distribution of the last 24h
-    new_indices = pd.date_range(
-        start=last_date + pd.Timedelta(hours=1), periods=count, freq="H"
-    )
+    sampled = np.random.normal(last_24h_from_last_week_mean, last_24h_from_last_week_std, size=count) # assuming stationary distribution of the last 24h
+    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="H")
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
-
+    
     return estimated_df
 
 

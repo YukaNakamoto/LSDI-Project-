@@ -8,8 +8,9 @@ from src.plot import plot_correlation_line
 dir = "./data/"
 
 
-def get_e_price_df() -> pd.DataFrame:
-    e_price_df = pd.read_csv(dir + "day_ahead_energy_prices.csv", delimiter=",")
+def get_e_price_df(predict) -> pd.DataFrame:
+    file = "day_ahead_energy_prices.csv" if not predict else "filled_day_ahead_energy_prices.csv"
+    e_price_df = pd.read_csv(dir + file, delimiter=",")
 
     e_price_df = e_price_df.set_index("Datetime")
     e_price_df.index = pd.to_datetime(e_price_df.index)
@@ -18,10 +19,10 @@ def get_e_price_df() -> pd.DataFrame:
     return e_price_df
 
 
-def get_mix_df() -> pd.DataFrame:
-    mix_df = pd.read_csv(
-        dir + "hourly_market_mix_cleaned.csv",
-        usecols=[
+def get_mix_df(predict) -> pd.DataFrame:
+    file = "hourly_market_mix_cleaned.csv" if not predict else "filled_hourly_market_mix_cleaned.csv"
+
+    cols = [
             "Timestamp",
             "Biomass",
             "Hard Coal",
@@ -34,7 +35,19 @@ def get_mix_df() -> pd.DataFrame:
             "Solar",
             "Wind offshore",
             "Wind onshore",
-        ],
+        ]
+    
+    if predict:
+        cols = [
+             "Timestamp", "Hydro", "Pumped storage generation", "Solar", "Wind offshore", "Wind onshore",
+        ]
+
+
+
+
+    mix_df = pd.read_csv(
+        dir + file,
+        usecols=cols,
         delimiter=",",
     )
     mix_df.rename(columns={"Timestamp": "Datetime"}, inplace=True)
@@ -45,8 +58,9 @@ def get_mix_df() -> pd.DataFrame:
     return mix_df
 
 
-def get_avg_weather_data() -> pd.DataFrame:
-    avg_weather_df = pd.read_csv(dir + "germany_weather_average.csv", delimiter=",")
+def get_avg_weather_data(predict) -> pd.DataFrame:
+    file = "germany_weather_average.csv" if not predict else "filled_germany_weather_average.csv"
+    avg_weather_df = pd.read_csv(dir + file, delimiter=",")
 
     avg_weather_df.set_index("date", inplace=True)
     avg_weather_df.index = pd.to_datetime(avg_weather_df.index)
@@ -64,18 +78,18 @@ def get_avg_weather_data() -> pd.DataFrame:
     return avg_weather_df
 
 
-def get_datasets() -> (
+def get_datasets(predict=False) -> (
     pd.DataFrame
 ):  # 12:00 of every day -> add 1.5 days of values to e.g. 17.02 12:00 -> 19.02 00:00
     dfs_to_merge = []
 
-    e_price_df = get_e_price_df()
+    e_price_df = get_e_price_df(predict)
     dfs_to_merge.append(e_price_df)
 
-    mix_df = get_mix_df()
+    mix_df = get_mix_df(predict)
     dfs_to_merge.append(mix_df)
 
-    avg_weather_df = get_avg_weather_data()
+    avg_weather_df = get_avg_weather_data(predict)
     dfs_to_merge.append(avg_weather_df)
 
     dfs_to_merge = [df[~df.index.duplicated(keep="first")] for df in dfs_to_merge]

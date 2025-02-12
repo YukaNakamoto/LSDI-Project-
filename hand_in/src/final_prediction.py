@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 import numpy as np
 import pytz
 import requests
@@ -7,31 +7,41 @@ import openmeteo_requests
 import requests_cache
 from retry_requests import retry
 import time
+import os
 
 dir = "./data/"
-prediction_date = datetime(2025, 2, 18, 23, 0, 0)
 
-def fill_up_e_prices():
+prediction_date_end = datetime(2025, 2, 18, 23, 0, 0)
 
-    path = dir + 'day_ahead_energy_prices.csv'
-    e_price_df = pd.read_csv(path, delimiter=",")
+def fill_up_e_prices(end_date):
+
+    prediction_date_end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+
+    path_real = dir + 'day_ahead_energy_prices.csv'
+    path_filled_debug = dir + 'debug_filled_day_ahead_energy_prices.csv'
+    path_filled = dir + 'filled_day_ahead_energy_prices.csv'
+    e_price_df = pd.read_csv(path_real, delimiter=",")
     e_price_df = e_price_df.set_index('Datetime')
     e_price_df.index = pd.to_datetime(e_price_df.index)
     
-    
-    estimations_df = get_estimations(e_price_df.copy(), e_price_df.index[-1], col_name="hourly day-ahead energy price", count=None, final_date=prediction_date)
+    estimations_df = get_estimations(e_price_df.copy(), e_price_df.index[-1], col_name="hourly day-ahead energy price", count=None, final_date=prediction_date_end)
+    estimations_df.to_csv(path_filled_debug, index_label="Datetime", mode='w')
     e_price_df = pd.concat([e_price_df, estimations_df])
     
     e_price_df.index = e_price_df.index.strftime('%Y-%m-%dT%H:%M:%S')
     
     # Save to CSV with the modified index
-    e_price_df.to_csv(path, index_label="Datetime")
+    if not os.path.exists(path_filled):
+        open(path_filled, 'w').close()  # Create the file if it doesn't exist
+
+    # Write the DataFrame to the file, replacing its content
+    e_price_df.to_csv(path_filled, index_label="Datetime", mode='w')
 
 def get_estimations(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
-    last_24h = df[col_name].iloc[-24:]
+    last_24h_from_last_week = df[col_name].iloc[-24 * 7: -24 * 6]
     
-    last_24h_mean = last_24h.mean()
-    last_24h_std= last_24h.std()
+    last_24h_from_last_week_mean = last_24h_from_last_week.mean()
+    last_24h_from_last_week_std= last_24h_from_last_week.std()
 
     if final_date:
         count = int((final_date - last_date).total_seconds() / 3600)
@@ -40,52 +50,80 @@ def get_estimations(df, last_date, col_name, count = None, final_date=None) -> p
     else:
         count = 48
 
-    sampled = np.random.normal(last_24h_mean, last_24h_std, size=count) # assuming stationary distribution of the last 24h
+    if count <= 0:
+        return pd.DataFrame()
+
+    sampled = np.random.normal(last_24h_from_last_week_mean, last_24h_from_last_week_std, size=count).round(2) # assuming stationary distribution of the last 24h
     new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="H")
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
-    
     return estimated_df
 
 
-def fill_up_energy_mix():
+def fill_up_energy_mix(end_date):
+    """
+    Fills up missing future values in the energy mix dataset by copying past values 
+    and supplementing them with SMARD energy mix predictions.
+    """
+    prediction_date_end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+    input_path = os.path.join(dir, 'hourly_market_mix_cleaned.csv')
+    debug_path = os.path.join(dir, 'debug_hourly_market_mix_cleaned.csv')
+    output_path = os.path.join(dir, 'filled_hourly_market_mix_cleaned.csv')
+    
+    # Load the dataset
+    columns = ["Timestamp", "Biomass", "Hard Coal", "Hydro", "Lignite", "Natural Gas", 
+               "Nuclear", "Other", "Pumped storage generation", "Solar", "Wind offshore", "Wind onshore"]
+    new_columns = ["Pumped storage generation", "Solar", "Wind offshore", "Wind onshore", "Hydro"]
 
-    mix_df = pd.read_csv(dir +'hourly_market_mix_cleaned.csv', usecols=["Timestamp", "Biomass",
-        "Hard Coal",
-        "Hydro",
-        "Lignite",
-        "Natural Gas",
-        "Nuclear",
-        "Other",
-        "Pumped storage generation",
-        "Solar",
-        "Wind offshore",
-        "Wind onshore"], delimiter=",")
-
+    mix_df = pd.read_csv(input_path, usecols=columns, delimiter=",")
+    
+    # Convert timestamp column to datetime index
+    mix_df["Timestamp"] = pd.to_datetime(mix_df["Timestamp"])
     mix_df.set_index("Timestamp", inplace=True)
-    mix_df.index = pd.to_datetime(mix_df.index)
-
-
-    copy_mix_df = mix_df[["Hydro", "Pumped storage generation"]]
-    pred_mix_df = mix_df[["Solar","Wind offshore","Wind onshore"]]
-
-
+    
     last_date = mix_df.index[-1]
-    n = int((prediction_date - last_date).total_seconds() / 3600)
+    hours_to_fill = int((prediction_date_end - last_date).total_seconds() / 3600)
     
-    copy_mix_df = get_by_copy(copy_mix_df, last_date, n)
-    pred_mix_df = download_smard_energy_mix_prediction(last_date + timedelta(hours=1), n)
-
-    estimations_df = pd.concat([copy_mix_df, pred_mix_df], axis=1, join='inner')
-
+    if hours_to_fill > 0:
+        # Split dataset into relevant subsets
+        hydro_df = mix_df[["Hydro", "Pumped storage generation"]]
+        renewable_df = mix_df[["Solar", "Wind offshore", "Wind onshore"]]
+        
+        # Fill missing hydro values by copying past values
+        hydro_filled_df = get_by_copy(hydro_df, last_date, hours_to_fill)
+        
+        # Fetch predicted energy mix data from SMARD API
+        prediction_start = last_date + timedelta(hours=1)
+        predicted_mix_df = download_smard_energy_mix_prediction(prediction_start, hours_to_fill)
+        
+        if predicted_mix_df.empty:
+            predicted_mix_df = get_by_copy(renewable_df, last_date, hours_to_fill)
+        else:
+            missing_hours = int((prediction_date_end - predicted_mix_df.index[-1]).total_seconds() / 3600)
+            if missing_hours > 0:
+                last_valid_date = predicted_mix_df.index[-1] if not predicted_mix_df.empty else renewable_df.index[-1]
+                additional_data = get_by_copy(renewable_df, last_valid_date, missing_hours)
+                predicted_mix_df = pd.concat([predicted_mix_df, additional_data])
+        
+        # Combine estimated and predicted values
+        estimations_df = pd.concat([hydro_filled_df, predicted_mix_df], axis=1, join='inner')
+        estimations_df.to_csv(debug_path, index_label="Timestamp", mode='w')
+        
+        # Extend the original dataset
+        mix_df = pd.concat([mix_df[new_columns], estimations_df])
+        mix_df.index = mix_df.index.strftime('%Y-%m-%dT%H:%M:%S')
     
-    mix_extended_df = pd.concat([mix_df, estimations_df])
-    mix_extended_df.index = mix_extended_df.index.strftime('%Y-%m-%dT%H:%M:%S')
-    mix_extended_df.to_csv(dir +'hourly_market_mix_cleaned.csv', index_label="Timestamp")
+    # Ensure the output file exists before writing
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    # Save the extended dataset
+    mix_df.to_csv(output_path, index_label="Timestamp", mode='w')
+
+
 
 
 def get_by_copy(df, last_date, n):
     """
-    Copies the last n rows of a DataFrame one week ago and appends them to the end,
+    Copies the last n rows of a DataFrame and appends them to the end,
     ensuring the new index continues from last_date.
 
     Parameters:
@@ -98,17 +136,19 @@ def get_by_copy(df, last_date, n):
     """
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
-    idx_one_week_ago = pd.date_range(start=last_date + pd.Timedelta(hours=1) - pd.Timedelta(weeks=1), periods=n, freq='H')
-    values_one_week_ago = df.copy().reindex(idx_one_week_ago)
-    
-    print(values_one_week_ago)
+
+    last_n_rows = df.iloc[-n - (24 * 7):-(24 * 7)].copy()
 
     # Generate new timestamps starting from last_date + 1 hour
-    new_index = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=n, freq='H')
+    new_index = pd.date_range(
+        start=last_date + pd.Timedelta(hours=1), periods=n, freq="H"
+    )
 
     # Ensure new timestamps match expected future values
-    values_one_week_ago.index = new_index
-    return values_one_week_ago
+    last_n_rows.index = new_index
+
+    return last_n_rows  # Return only the extended rows
+
 
 
 def preprocess_smard_energy_mix_prediction_dates(start_date: datetime, n=None, end_date=None):
@@ -168,7 +208,7 @@ def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_p
         for ts, value in day_series:
             date_time_ts = datetime.fromtimestamp(ts / 1000, tz=pytz.utc).astimezone(pytz.timezone("Europe/Berlin")).strftime('%Y-%m-%d %H:%M:%S')
             if value is None:
-                print("None value detected for ts: ", date_time_ts)
+                # print("None value detected for ts: ", date_time_ts)
                 observed_output.append(None)
             else:
                 val = value / 1000
@@ -183,8 +223,6 @@ def postprocess_smard_energy_mix_prediction_data(responses, hour_offset, delta_p
         df.set_index("Datetime", inplace=True)
 
         df.dropna(inplace=True)
-        additional_rows = get_by_copy(df, df.index[-1], 24)
-        df = pd.concat([df, additional_rows])
         dfs.append(df)
 
     df_merged = pd.concat(dfs, axis=1)
@@ -402,52 +440,112 @@ sun_parks = [
 
 
 #Fetch Forecast Data and append to CSV. Last day till now() + 5 days
-def fetch_forecast_and_update_csv():
+
+def fetch_forecast_and_update_csv(end_date):
+    prediction_date_end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
     # Read the existing weather data CSV
     csv_file_path = dir + "germany_weather_average.csv"
+    output_path_debug = os.path.join(dir, 'debug_filled_germany_weather_average.csv')
+    output_path = os.path.join(dir, 'filled_germany_weather_average.csv')
     df_weather = pd.read_csv(csv_file_path, parse_dates=["date"], index_col="date")
 
     # Check if the last row has the date attribute 00:00:00+0000
     if df_weather.index[-1].time() == datetime.strptime("00:00:00+0000", "%H:%M:%S%z").time():
         df_weather = df_weather.iloc[:-1]  # Drop the last row
 
-    # Get the last date in the CSV file
-    last_date = df_weather.index.max()
-
     # Calculate the start date for the forecast
-    start_date = last_date + timedelta(days=1)
-    end_date = datetime.now() + timedelta(days=2)
+    start_date = df_weather.index[-1] + timedelta(hours=1)
+    end_date = prediction_date_end
 
-    # Setup the client and fetch the forecast data
-    client = setup_client()
-    forecast_url = "https://api.open-meteo.com/v1/forecast"
+    if end_date >= start_date:
+        # Setup the client and fetch the forecast data
+        client = setup_client()
+        forecast_url = "https://api.open-meteo.com/v1/forecast"
 
-    forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
+        forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
 
-    params_template = {
-        "start_date": forecast_start_date,
-        "end_date": forecast_end_date,
-        "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
-    }
-    coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
+        params_template = {
+            "start_date": forecast_start_date,
+            "end_date": forecast_end_date,
+            "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
+        }
+        coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
 
-    params_template["hourly"] = ["wind_speed_100m"]
-    wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
+        params_template["hourly"] = ["wind_speed_100m"]
+        wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
 
-    params_template["hourly"] = ["direct_radiation"]
-    sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
+        params_template["hourly"] = ["direct_radiation"]
+        sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
 
-    weighted_wind_speed = calculate_weighted_averages(wind_parks_data, wind_parks, "wind_speed_100m", "weighted_wind_speed")
-    weighted_radiation = calculate_weighted_averages(sun_parks_data, sun_parks, "direct_radiation", "weighted_radiation")
+        weighted_wind_speed = calculate_weighted_averages(wind_parks_data, wind_parks, "wind_speed_100m", "weighted_wind_speed")
+        weighted_radiation = calculate_weighted_averages(sun_parks_data, sun_parks, "direct_radiation", "weighted_radiation")
 
-    coordinates_avg = coordinates_data.groupby("date").mean()
-    combined_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
+        coordinates_avg = coordinates_data.groupby("date").mean()
+        predicted_weather_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
+        predicted_weather_df.to_csv(output_path_debug, index_label="date", date_format="%Y-%m-%d %H:%M:%S", mode="w")
 
     # Select only the required columns
-    final_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
-    final_df.index.name = "date"
-    final_df.index = final_df.index.tz_convert("UTC")
+    df_weather = df_weather[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
+    df_weather.index.name = "date"
+    df_weather.index = df_weather.index.tz_convert("UTC")
 
     # Append the new forecast data to the existing CSV
-    updated_df = pd.concat([df_weather, final_df])
-    updated_df.to_csv(csv_file_path, date_format="%Y-%m-%d %H:%M:%S%z")
+    updated_df = pd.concat([df_weather, predicted_weather_df])
+    updated_df.to_csv(output_path, index_label="date", date_format="%Y-%m-%d %H:%M:%S%z", mode="w")
+
+def fetch_forecast_and_update_csv(end_date):
+    # Read the existing weather data CSV
+    csv_file_path = dir + "germany_weather_average.csv"
+    output_path_debug = os.path.join(dir, 'debug_filled_germany_weather_average.csv')
+    output_path = os.path.join(dir, 'filled_germany_weather_average.csv')
+    df_weather = pd.read_csv(csv_file_path, parse_dates=["date"], index_col="date")
+
+    # Check if the last row has the date attribute 00:00:00+0000
+    if df_weather.index[-1].time() == datetime.strptime("00:00:00+0000", "%H:%M:%S%z").time():
+        df_weather = df_weather.iloc[:-1]  # Drop the last row
+
+
+    start_date = df_weather.index[-1]
+    end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+
+    if end_date >= start_date:
+        # Setup the client and fetch the forecast data
+        client = setup_client()
+        forecast_url = "https://api.open-meteo.com/v1/forecast"
+
+        forecast_start_date, forecast_end_date = convert_dates(start_date, end_date)
+
+        params_template = {
+            "start_date": forecast_start_date,
+            "end_date": forecast_end_date,
+            "hourly": ["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]
+        }
+        coordinates_data = fetch_data(client, coordinates, params_template, forecast_url)
+
+        params_template["hourly"] = ["wind_speed_100m"]
+        wind_parks_data = fetch_data(client, wind_parks, params_template, forecast_url)
+
+        params_template["hourly"] = ["direct_radiation"]
+        sun_parks_data = fetch_data(client, sun_parks, params_template, forecast_url)
+
+        weighted_wind_speed = calculate_weighted_averages(wind_parks_data, wind_parks, "wind_speed_100m", "weighted_wind_speed")
+        weighted_radiation = calculate_weighted_averages(sun_parks_data, sun_parks, "direct_radiation", "weighted_radiation")
+
+        coordinates_avg = coordinates_data.groupby("date").mean()
+        combined_df = pd.concat([coordinates_avg, weighted_wind_speed, weighted_radiation], axis=1)
+        combined_df = combined_df[["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"]]
+
+    else:
+        combined_df = pd.DataFrame(columns=["temperature_2m", "precipitation", "wind_speed_100m", "direct_radiation"])
+    
+    combined_df.index.name = "date"
+    combined_df.index = combined_df.index.tz_convert("UTC")
+    combined_df.to_csv(output_path_debug, date_format="%Y-%m-%d %H:%M:%S%z", mode="w")
+
+
+    # Append the new forecast data to the existing CSV
+    updated_df = pd.concat([df_weather, combined_df])
+    updated_df.to_csv(output_path, date_format="%Y-%m-%d %H:%M:%S%z", mode="w")
+
+
+

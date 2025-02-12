@@ -242,11 +242,11 @@ def plot_energy_mix():
     df_normalized = df_last_72h.div(df_last_72h.sum(axis=1), axis=0)
 
     # Plot the stacked area chart
-    plt.figure(figsize=(14, 6))
-    df_normalized.plot.area(figsize=(14, 6), alpha=0.8, cmap="tab10")
+    plt.figure(figsize=(14, 10))
+    df_normalized.plot.area(figsize=(14, 8), alpha=0.8, cmap="tab10")
     plt.xlabel("Datetime")
     plt.ylabel("Proportion")
-    plt.title("Energy Mix - Last 72 Hours")
+    plt.title("Energy Mix")
     plt.xticks(rotation=45)
     plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
     plt.tight_layout()
@@ -267,3 +267,24 @@ def plot_correlation_line(merged_df):
     plt.ylabel("Price")
     plt.grid(True)
     plt.show()
+
+
+def plot_final_prediction(prediction, date):
+        date_without_time_format = date.split(" ")[0]
+        prediction.index = prediction.index.hour
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        plt.step(
+            prediction.index,
+            prediction["yhat"],
+            linewidth=1.5,
+            where="pre",
+            label="Prophet",
+            color="orange",
+        )
+        plt.xticks(prediction.index, rotation=45)
+        plt.xlabel("Hour")
+        plt.ylabel("Price")
+        plt.title(f"Hourly Energy Price Prediction - {date_without_time_format}", fontsize=14)
+        plt.show()
+

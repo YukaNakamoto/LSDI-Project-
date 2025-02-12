@@ -746,7 +746,7 @@ def fetch_historical_weather():
     df_cleaned.to_csv(historical_csv_file, index=False)
     print(f"Historical data appended to {historical_csv_file}.")
 
-def update_e_price_data(csv_dir: str = dir,csv_filename: str = "day_ahead_energy_prices.csv",start_date_str: str = "2018-10-01"):
+def update_e_price_data(csv_dir: str = dir,csv_filename: str = "day_ahead_energy_prices.csv",start_date_str: str = "2018-10-01", end_date_str: str = "2021-10-01"):
     """
     Fetches entire weeks of day-ahead energy price data from SMARD.de.
     - If the CSV does not exist or is empty, fetches all weeks from start_date to today.
@@ -806,6 +806,7 @@ def update_e_price_data(csv_dir: str = dir,csv_filename: str = "day_ahead_energy
     combined_df = pd.concat([existing_df, new_data_df], axis=0)
     combined_df = combined_df[~combined_df.index.duplicated(keep="first")]
     combined_df.sort_index(inplace=True)
+    combined_df.dropna(inplace=True)
 
     save_to_csv(combined_df, csv_file)
 
