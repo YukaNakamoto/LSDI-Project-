@@ -118,7 +118,7 @@ def get_by_copy(df, last_date, n):
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
 
-    last_n_rows = df.iloc[-(n + 24 * 7):- (24 * 7)].copy() # today one week ago
+    last_n_rows = df.iloc[-24:].copy() # today one week ago
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(

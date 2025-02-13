@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
+from src.scraping import fetch_forecast
 
 def get_estimation(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
     last_24h_from_last_week = df[col_name].iloc[-24]
