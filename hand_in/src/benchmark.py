@@ -4,7 +4,7 @@ import numpy as np
 from src.scraping import download_smard_energy_mix_prediction, fetch_forecast
 
 def get_estimation(df, last_date, col_name, count = None, final_date=None) -> pd.DataFrame: 
-    last_24h_from_last_week = df[col_name].iloc[-24 * 7: -24 * 6]
+    last_24h_from_last_week = df[col_name].iloc[-24]
     
     last_24h_from_last_week_mean = last_24h_from_last_week.mean()
     last_24h_from_last_week_std= last_24h_from_last_week.std()
