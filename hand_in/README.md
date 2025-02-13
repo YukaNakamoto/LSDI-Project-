@@ -24,8 +24,8 @@ brew install poetry
 ### Installation
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/BTW-2025-Data-Science-Challenge.git
-   cd BTW-2025-Data-Science-Challenge
+   git clone https://github.com/YukaNakamoto/LSDI-Project-.git
+   cd LSDI-Project-/hand_in
    ```
 
 2. Install dependencies:
@@ -38,7 +38,7 @@ brew install poetry
    ```sh
    poetry shell
    ```
-   Now you are inside the virtual environment and can run Python scripts with the installed dependencies.
+   Now you are inside the virtual environment and can run Python scripts with the installed dependencies. (Requires Poetry to be set in $PATH)
 
 ### Verify Dependencies
 To check installed dependencies, run:
@@ -46,16 +46,10 @@ To check installed dependencies, run:
 poetry show
 ```
 
-### Running the Project
-Run your main script using:
-```sh
-poetry run python your_script.py
-```
-
 ### Running Jupyter Notebook with Poetry
 To use Jupyter Notebook with Poetry dependencies, follow these steps:
 
-1. Install Jupyter if not already installed:
+1. Install Jupyter if not already installed (Should have been installed by poetry):
    ```sh
    poetry add jupyter ipykernel
    ```
@@ -77,20 +71,6 @@ Exit the Poetry virtual environment by typing:
 ```sh
 exit
 ```
-
-## Contributing
-If you wish to contribute, follow these steps:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes and commit (`git commit -m 'Add feature'`).
-4. Push to the branch (`git push origin feature-branch`).
-5. Open a pull request.
-
-## License
-This project is licensed under the MIT License. See `LICENSE` for details.
-
-## Contact
-For any inquiries, please contact `your-email@domain.com`.
 
 ### Report
 
@@ -218,4 +198,3 @@ In conclusion, our analysis revealed several key insights about energy price for
 Among the models tested, XGBoost emerged as the best performer, achieving the lowest average RMSE in our specific scenario. While Prophet demonstrated superior accuracy in ideal conditions due to its ability to model seasonality, trends, and external regressors, its performance relied on the availability of the energy mix forecast, which is published too late for the challenge. Without this crucial feature, XGBoost outperformed Prophet, making it the more reliable choice for our forecasting task. Given these constraints, we selected XGBoost as our final model.
 
 For further improvements, several steps could be taken. One important enhancement would be to incorporate oil and gas prices, as these external economic factors have a direct influence on energy markets. Adding such financial indicators could provide a more comprehensive view of price fluctuations. Additionally, increasing the amount of historical data available for training could further improve model performance by capturing long-term trends and rare market conditions. By expanding the dataset and integrating more relevant features, the accuracy and robustness of the forecast could be further enhanced, making the predictions even more reliable.
-
