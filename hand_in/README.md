@@ -108,7 +108,7 @@ Weather conditions significantly affect energy supply and demand, thereby influe
 - Temperature:
   - Low Temperatures → Increased heating demand → Higher prices
   - High Temperatures → Increased cooling demand → Higher prices
-- Precipitation: Affects prices with a delayed impact, possibly by influencing hydropower generation or overall energy demand (Mosquera-Lopez et al., 2024; Springer, 2022; IMF, 2022).
+- Precipitation: Affects electricity prices by influencing hydropower generation, with price sensitivity determined by country‐specific precipitation thresholds (Mosquera‐López et al., 2024).
 
 ### 3. Data Cleaning
 Understanding and preparing the data is a crucial step in any predictive modeling task. In energy price forecasting, data reliability, completeness, and structure play a fundamental role in ensuring the models can capture key trends and dependencies. Given the complexity of the energy market, multiple data sources were used, each contributing essential information. However, some critical datasets were not readily accessible—gas and oil price data were behind a paywall, preventing their inclusion, and electricity demand data was available but consistently missing the last three days, making it unreliable for modeling. Addressing these challenges required careful data cleaning, merging, and feature engineering to build a robust foundation for forecasting models.
