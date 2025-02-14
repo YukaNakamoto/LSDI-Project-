@@ -95,7 +95,7 @@ Germany’s energy mix has evolved significantly, with the share of renewables r
 - Wind Power: Wind power generation generally peaks during the winter months, partly balancing out lower power input by solar installations (Clean Energy Wire).
 - Solar Power: Photovoltaic (PV) generation typically reaches its highest output during summer daytime hours, when intense sunlight drives abundant electricity production. This increased solar output during the day shifts the supply curve via the merit‐order effect, reducing wholesale electricity prices (Cludius et al., 2014; Sebastian Kolb, 2020).
 
-Despite the rise in renewables, fossil fuels—including hard coal, lignite, and natural gas—still play a critical role. They contribute to price volatility, influenced by fluctuating fuel costs and carbon pricing (Nature, 2024). Understanding both the renewable and fossil-fuel components of the energy mix is therefore crucial for accurate price forecasting.
+Despite the rise in renewables, fossil fuels—including hard coal, lignite, and natural gas—still play a critical role. They contribute to price volatility, influenced by fluctuating fuel costs and carbon pricing (de Lagarde, C., & Lantz, F., 2019). Understanding both the renewable and fossil-fuel components of the energy mix is therefore crucial for accurate price forecasting.
 
 Hypothesis
 We hypothesize that there is an inverse relationship between renewable energy production (including solar, wind onshore, wind offshore, and hydro) and next-day energy prices. In other words, as renewable generation increases, the day-ahead market price tends to decrease, largely due to the low marginal costs associated with renewable sources.
