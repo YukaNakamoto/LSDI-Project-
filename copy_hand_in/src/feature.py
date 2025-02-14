@@ -29,7 +29,7 @@ def split(DATASET, eval_size, prediction_date):
         hourly_index = pd.date_range(
             start=f"{prediction_date} 00:00:00",
             end=f"{prediction_date} 23:59:59",
-            freq="H"
+            freq="h"
         )
 
     max_hourly_time = hourly_index[-1]

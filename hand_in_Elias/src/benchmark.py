@@ -16,7 +16,7 @@ def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
         last_weeks_val_mean, last_weeks_val_std, size=count
     )  # assuming stationary distribution of the last 24h
     new_indices = pd.date_range(
-        start=last_date + pd.Timedelta(hours=1), periods=count, freq="H"
+        start=last_date + pd.Timedelta(hours=1), periods=count, freq="h"
     )
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
 
@@ -43,7 +43,7 @@ def get_by_copy(df, last_date, n):
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(
-        start=last_date + pd.Timedelta(hours=1), periods=n, freq="H"
+        start=last_date + pd.Timedelta(hours=1), periods=n, freq="h"
     )
 
     # Ensure new timestamps match expected future values

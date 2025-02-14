@@ -12,7 +12,7 @@ def get_by_estimations(df, last_date, col_name, count) -> pd.DataFrame:
     last_24h_std= last_24h.std()
 
     sampled = np.random.normal(last_24h_mean, last_24h_std, size=count) # assuming stationary distribution of the last 24h
-    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="H")
+    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=count, freq="h")
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
     
     return estimated_df

@@ -19,7 +19,7 @@ def get_by_estimations(df, prediction_date_start, col_name, count = None) -> pd.
     last_24h_std= last_24h.std()
 
     sampled = np.random.normal(last_24h_mean, last_24h_std, size=hours_diff) # assuming stationary distribution of the last 24h
-    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=hours_diff, freq="H")
+    new_indices = pd.date_range(start=last_date + pd.Timedelta(hours=1), periods=hours_diff, freq="h")
     estimated_df = pd.DataFrame({col_name: sampled}, index=new_indices)
     
     print(f"{hours_diff} estimations added to {col_name} column.")

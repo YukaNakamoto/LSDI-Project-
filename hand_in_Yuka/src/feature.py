@@ -8,7 +8,7 @@ import pandas as pd
 #         hourly_index = pd.date_range(
 #             start=f"{prediction_date} 00:00:00",
 #             end=f"{prediction_date} 23:59:59",
-#             freq="H"
+#             freq="h"
 #         )
 
 
