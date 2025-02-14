@@ -124,7 +124,7 @@ After cleaning the data, we merged different datasets to establish a comprehensi
 
 
 ## 3.3 Correlation Analysis
-We explored the relationship between different factors (weather variables, energy mix) and energy prices. Initial findings revealed an inverse correlation between renewable energy generation (solar, wind onshore, wind offshore, hydro) and energy prices, with an observed moderate negative correlation coefficient of -0.312. (pic a)
+We explored the relationship between different factors (weather variables, energy mix) and energy prices. Initial findings revealed an inverse correlation between renewable energy generation (solar, wind onshore, wind offshore, hydro) and energy prices, with an observed moderate negative correlation coefficient of -0.312. 
 
 ## 3.4 Data Loading
 In handling missing values, we removed all rows containing missing entries in either the energy price or energy mix columns. The weather dataset was complete, so no additional steps were necessary for that. Since nuclear energy production reporting ceased in 2024, we set any missing nuclear values to 0.0 from that point onward.
