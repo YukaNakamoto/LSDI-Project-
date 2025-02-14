@@ -75,20 +75,17 @@ exit
 ### Report
 
 
-### 1. Introduction
+## 1. Introduction
 
-Forecasting energy prices in Germany is a challenging task due to the complex interplay of multiple factors, including renewable energy generation, fossil fuel prices, weather conditions, and market regulations. The growing share of renewables in the country’s power grid has introduced additional volatility, making accurate price prediction even more difficult.
+Forecasting energy prices in Germany is a challenging task due to the complex interplay of multiple factors, including renewable energy generation, fossil fuel prices, weather conditions, and market regulations. 
+As participants in the “BTW 2025 Data Science Challenge,” our goal is find relevant datasets and to build a predictive model that forecasts hourly day-ahead energy prices for Germany on February 18, 2025, using historical data. This report begins with an overview of the domain knowledge surrounding Germany’s energy market, followed by a discussion of the data sources used in modeling. Subsequent sections detail the methodology, present modeling results, and offer conclusions.
 
-Forecasting energy prices in Germany is a challenging task due to the complex interplay of multiple factors, including renewable energy generation, fossil fuel prices, weather conditions, and market regulations. The growing share of renewables in the country’s power grid has introduced additional volatility, making accurate price prediction even more difficult.
+## 2. Background & Domain Knowledge
 
-As participants in the “BTW 2025 Data Science Challenge,” our goal is to build predictive models that forecast hourly day-ahead energy prices for Germany on February 18, 2025, using historical data. This report begins with an overview of the domain knowledge surrounding Germany’s energy market, followed by a discussion of the data sources used in modeling. Subsequent sections detail the methodology, present modeling results, and offer conclusions.
+### 2.1 Energy Market and Price Dynamics
+The German day ahead energy price is determined by demand und supply. At 12:00 CES the bids of customers and energy producers are gathered.
+Subsequently, the price is determined by the merit order principle, in which the output of power plants with the lowest marginal costs are accumulated until to meet demand; ultimately, the price is set by the last plant needed to satisfy demand. Because renewable energy sources generally have low marginal costs, they are dispatched preferentially. However, oversupply, along with grid limitations, can lead to negative prices (Wissenschaftliche Dienste, 2022).
 
-### 2. Background & Domain Knowledge
-
-## 2.1 Energy Market and Price Dynamics
-In Germany, electricity pricing comprises consumer electricity fees and wholesale market prices, with the day-ahead market serving as a key indicator of wholesale price fluctuations. Prices in this market are determined by the “merit order principle,” in which the power plants with the lowest marginal costs are used first to meet demand; ultimately, the price is set by the last plant needed to satisfy demand. Because renewable energy sources generally have low marginal costs, they are dispatched preferentially. However, oversupply, along with grid limitations, can lead to negative prices (Wissenschaftliche Dienste, 2022).
-
-These dynamics underscore the importance of closely examining both supply-side and demand-side factors when forecasting energy prices.
 
 ## 2.2 Energy Mix
 Germany’s energy mix has evolved significantly, with the share of renewables reaching about 50% of total generation in 2023 (BMWK-Energiewende, 2024). Among these, wind and solar power dominate:
