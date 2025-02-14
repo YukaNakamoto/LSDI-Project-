@@ -6,7 +6,7 @@ To set up the project locally, follow these steps:
 
 ### Prerequisites
 Ensure you have the following installed on your system:
-- Python (>=3.8)
+- Python (>=3.10)
 - Poetry (>=1.0.0)
 
 To install Poetry, run:
