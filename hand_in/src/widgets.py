@@ -68,6 +68,8 @@ def select_features():
         "dayofweek",
         "Hydro",
         "Pumped storage generation",
+        "ma_3_hours",
+        "ma_6_hours",
         "ma_3_hours_pumped_storage_generation",
         "ma_6_hours_pumped_storage_generation",
         "Solar",
