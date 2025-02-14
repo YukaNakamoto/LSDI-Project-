@@ -103,7 +103,7 @@ We hypothesize that there is an inverse relationship between renewable energy pr
 
 ## 2.3 Weather Impacts
 Weather conditions significantly affect energy supply and demand, thereby influencing prices. Key factors include:
-- Wind Speeds: Higher winds, especially in northern Germany, boost renewable generation and typically lower prices (Tanaka et al., 2022; Mosquera-Lopez et al., 2024).
+- Wind Speeds: Higher wind speeds, especially in northern Germany where wind resources are abundant, increase wind power generation and lower wholesale electricity prices by shifting the merit‐order (Sensfuß et al., 2008; Cludius et al., 2014).
 - Solar Irradiance: Stronger sunlight in southern regions increases solar power output, putting downward pressure on prices.
 - Temperature:
   - Low Temperatures → Increased heating demand → Higher prices
