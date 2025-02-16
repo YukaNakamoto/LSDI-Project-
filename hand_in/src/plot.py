@@ -223,7 +223,7 @@ def plot_benchmark_predictions(
 
 def plot_energy_mix():
     # Rename the timestamp column and parse dates
-    df_raw = pd.read_csv("../data/hourly_market_mix_cleaned.csv")
+    df_raw = pd.read_csv("./data/hourly_market_mix_cleaned.csv")
 
     df_raw.rename(columns={"Timestamp": "Datetime"}, inplace=True)
     df_raw["Datetime"] = pd.to_datetime(df_raw["Datetime"])
@@ -275,7 +275,7 @@ def plot_final_prediction(prediction, date):
         fig, ax = plt.subplots(figsize=(12, 6))
         plt.step(
             prediction.index,
-            prediction["yhat"],
+            prediction["Germany/Luxembourg in €/MWh"],
             linewidth=1.5,
             where="post",
             label="Prophet",
@@ -286,4 +286,3 @@ def plot_final_prediction(prediction, date):
         plt.ylabel("Price")
         plt.title(f"Hourly Energy Price Prediction - {date_without_time_format}", fontsize=14)
         plt.show()
-

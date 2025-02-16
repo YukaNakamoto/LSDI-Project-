@@ -177,6 +177,7 @@ def create_features(df):
 
 
 def get_sets(train, eval, test, train_interval, eval_interval, test_interval, FEATURES):
+
     TARGET = "Price"
     X_train = train[FEATURES]
     y_train = train[TARGET]

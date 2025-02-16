@@ -103,26 +103,16 @@ def fill_up_energy_mix(end_date):
 
 
 def get_by_copy(df, last_date, n):
-    """
-    Copies the last n rows of a DataFrame from last week and appends them to the end,
-    ensuring the new index continues from last_date.
-
-    Parameters:
-        df (pd.DataFrame): DataFrame with a DateTimeIndex.
-        last_date (pd.Timestamp): The last known timestamp in the dataset.
-        n (int): Number of hours to extend.
-
-    Returns:
-        pd.DataFrame: Updated DataFrame with n additional rows, correctly indexed.
-    """
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
+    
+    print(df)
 
-    last_n_rows = df.iloc[-24:].copy()
+    last_n_rows = df.iloc[-n:].copy()
 
     # Generate new timestamps starting from last_date + 1 hour
     new_index = pd.date_range(
-        start=last_date + pd.Timedelta(hours=1), periods=n, freq="H"
+        start=last_date + pd.Timedelta(hours=1), periods=n, freq="h"
     )
 
     # Ensure new timestamps match expected future values

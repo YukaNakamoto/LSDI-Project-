@@ -7,13 +7,13 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.10,<4.0"
 numpy = "^2.2.2"
 pandas = "^2.2.3"
 scikit-learn = "^1.6.1"
 tqdm = "^4.67.1"
 xgboost = "^2.1.4"
-optuna = "^4.2.0"
+optuna = {extras = ["visualization"], version = "^4.2.1"}
 datetime = "^5.5"
 pytz = "^2025.1"
 requests = "^2.32.3"
@@ -27,6 +27,7 @@ ipython = "^8.32.0"
 jupyter = "^1.1.1"
 ipykernel = "^6.29.5"
 prophet = "^1.1.6"
+psycopg2-binary = "^2.9.10"
 
 
 [build-system]

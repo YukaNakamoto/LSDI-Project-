@@ -140,7 +140,7 @@ def unnormalize(predictions, scaler):
         return scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
 
 def correlation_analysis():
-    price_df = pd.read_csv("../data/day_ahead_energy_prices.csv")
+    price_df = pd.read_csv(dir + "day_ahead_energy_prices.csv")
     price_df.rename(
         columns={"Datetime": "Timestamp", "hourly day-ahead energy price": "Price"},
         inplace=True,
@@ -154,8 +154,7 @@ def correlation_analysis():
     price_df = price_df[
         (price_df["Price"] >= min_price) & (price_df["Price"] <= max_price)
     ]
-    # energy_mix_df = pd.read_csv("../data/hourly_market_mix_delta_abs.csv")
-    energy_mix_df = pd.read_csv("../data/hourly_market_mix_cleaned.csv")
+    energy_mix_df = pd.read_csv(dir + "/hourly_market_mix_cleaned.csv")
     # Merge datasets on timestamp
     merged_df = pd.merge(energy_mix_df, price_df, on="Timestamp", how="inner")
 
