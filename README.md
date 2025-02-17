@@ -1,4 +1,4 @@
-# BTW 2025 Data Science Challenge Participation TU Berlin
+# Forecasting Day-Ahead Energy Prices in Germany: A Comparative Study of Machine Learning Models
 
 ## Getting Started
 
@@ -69,8 +69,9 @@ Exit the Poetry virtual environment by typing:
 exit
 ```
 
-### Report
-
+## Report
+### Abstract
+This study presents a systematic comparison of three forecasting models—Linear Regression, Prophet, and XGBoost—for predicting day-ahead energy prices in Germany. Historical price data, weather features, and the renewable energy mix form the foundation of the predictive framework. Model performance, assessed via RMSE, indicates that integrating weather and energy mix features substantially enhances forecast accuracy. Despite Prophet’s aptitude for modeling seasonality, its accuracy declines without up-to-date energy mix forecasts for the day of predictions. Linear Regression provides interpretability but exhibits limited capacity to capture non-linear market interactions. XGBoost offers superior predictive performance, demonstrating robustness in handling complex feature dependencies. These findings underscore the importance of diverse inputs and advanced modelling approaches for reliable day-ahead energy price forecasting. 
 
 ## Introduction
 
@@ -223,28 +224,30 @@ Prophet, developed by Facebook, is designed for time-series forecasting, particu
 
 ## 6. Benchmark
 
-The Benchmark Test in this model evaluates the performance of different forecasting algorithms (Prophet, Linear Regression, and XGBoost) to predict the energy price for February 18th.  
+The Benchmark Test evaluates the performance of different forecasting algorithms (Prophet, Linear Regression, and XGBoost) by simulating the prediction of the energy price on Febuary 18th.  
 
-#### Data Preparation  
+## Methodology  
+
+### Data Preparation  
 - The dataset is merged and split into training, evaluation, and test sets.  
 - Training data includes all historical data up to a certain point.  
 - Evaluation and test sets assess model performance on unseen data.  
-- The benchmark dataset serves as a reference for comparing model predictions.  
+- The benchmark dataset serves as a reference for comparing model predictions. Since we have missing values for the day of prediction, we sample energy price data from a gaussian distribution. For energy mix data we simply copy the values from the previous day. OpenMeteo provides weather prediction for the upcoming day. We therefore don't have to rely on sampling or copying of preivous data.  
 
-#### Rolling Forecast Loop  
+### Rolling Forecast Loop  
 - The dataset is processed in 24-hour intervals.  
 - Starting 24 hours before the target day, the loop moves in 24-hour steps, predicting the price for the target day each time.  
 - The models are retrained on all available data up to each step, expanding the dataset continuously.  
 - If data is missing, the forecast for that window is skipped.  
 
-#### Model Evaluation  
+### Model Evaluation  
 
 - In each iteration, the three models (Prophet, Linear Regression, XGBoost) are trained and used to predict the price for one day.  
 - After running all simulations, the results are aggregated.  
 - The average RMSE (Root Mean Square Error) is calculated for each model.  
 - The model with the lowest RMSE is selected as the best model for predicting the energy price on February 18th.  
 
-#### Significance of the Benchmark Test  
+### Significance of the Benchmark Test  
 
 The Benchmark Test Setup helps simulate real-world forecasting conditions by continuously training and testing models over time. By comparing RMSE values, we can objectively determine which model provides the most accurate prediction for the target date.
 
@@ -302,13 +305,15 @@ Prophet, despite its ability to model seasonality, trends, and external variable
 Given these results, we selected XGBoost as our final model to predict the energy price for February 18th, as it consistently provided the most accurate forecasts.
 
 
-#### 6. Conclusion
+### 6. Conclusion
 
 Our analysis revealed several key insights about energy price forecasting. One of the most surprising findings was that hourly moving averages did not improve model performance. This was due to the fact that they had to be calculated from sampled data for the 24h that were to be predicted. While moving averages are commonly used to smooth short-term fluctuations, they rely on future observations, which are unavailable in a true forecasting scenario. This limitation made them ineffective for our models. However, daily moving averages, especially those spanning over multiple days did improve the model.
 
 Another significant result was the correlation between renewable energy generation and energy prices. As the share of renewable increased, prices tended to decrease, highlighting the impact of renewable energy sources on market dynamics. Additionally, we found that incorporating weather and energy mix features significantly improved forecasting accuracy, as reflected in the reduction of RMSE across all models. These external factors provided crucial information about supply and demand fluctuations, making them essential for accurate price predictions.
 
 We also discovered that some months are easier to predict than others. For example, December was easier to forecast than January. Similarly, certain time periods, such as daytime, were more nighttime, likely due to more stable demand patterns. Both XGBoost and Prophet performed well in capturing trends and spikes, but they consistently exhibited slight shifts, particularly around sharp price spikes.
+
+Additionally, we found that our predictions are not deterministic. This is probably due to the fact that for the moving averages, the missing energy prices have to be sampled. This may result some variation on the models predictions.
 
 Among the models tested, XGBoost emerged as the best performer, achieving the lowest average RMSE in our specific scenario. While Prophet demonstrated superior accuracy in ideal conditions due to its ability to model seasonality, trends, and external regressors, its performance relied on the availability of the energy mix forecast, which is published too late to take it into account for the challenge. Without this crucial feature, XGBoost outperformed Prophet, making it the more reliable choice for our forecasting task. Given these constraints, we selected XGBoost as our final model.
 

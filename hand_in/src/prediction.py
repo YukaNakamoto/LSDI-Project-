@@ -63,20 +63,23 @@ def prophet(features, X_train, y_train, X_test, scalar):
 
 best_params = {
     "base_score": 0.380924762889507,
-    "early_stopping_rounds": 215,
-    "max_depth": 80,
+    "early_stopping_rounds": 40,
+    "max_depth": 40,
     "learning_rate": 0.06,
-    "n_estimators": 150,
+    "n_estimators": 145,
     "gamma": 0.9,
     "min_child_weight": 6,
     "subsample": 0.5719023844219375,
     "colsample_bytree": 0.8815691043681952,
+    "colsample_bylevel": 1.0,
+    "colsample_bynode": 1.0,
+    "reg_lambda": 1.0
 }
 
 
 def predict_mse(X_train, y_train, X_val, y_val, X_test, scalar):
     model = xgb.XGBRegressor(**best_params)
-    model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=25)
+    model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
     predictions = model.predict(X_test)
 
     if scalar:
@@ -89,7 +92,7 @@ def predict_mae(X_train, y_train, X_val, y_val, X_test, scalar):
     best_params.update({"objective": "reg:squarederror", "eval_metric": "mae"})
 
     model = xgb.XGBRegressor(**best_params)
-    model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=25)
+    model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
     predictions = model.predict(X_test)
 
     if scalar:

@@ -270,7 +270,6 @@ def plot_correlation_line(merged_df):
 
 def plot_final_prediction(prediction, date):
         date_without_time_format = date.split(" ")[0]
-        prediction.index = prediction.index.hour
 
         fig, ax = plt.subplots(figsize=(12, 6))
         plt.step(

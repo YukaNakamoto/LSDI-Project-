@@ -105,8 +105,6 @@ def fill_up_energy_mix(end_date):
 def get_by_copy(df, last_date, n):
     if len(df) < n:
         raise ValueError("DataFrame must have at least n rows to extend.")
-    
-    print(df)
 
     last_n_rows = df.iloc[-n:].copy()
 
